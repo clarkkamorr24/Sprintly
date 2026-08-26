@@ -11,8 +11,10 @@ function createPrismaClient(): PrismaClient {
     throw new Error("DATABASE_URL is not set. Copy .env.example to .env.");
   }
 
+  const maxConnections = Number(process.env.DATABASE_POOL_MAX ?? "10");
+
   return new PrismaClient({
-    adapter: new PrismaPg(connectionString),
+    adapter: new PrismaPg({ connectionString, max: maxConnections }),
     log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
   });
 }
