@@ -99,7 +99,6 @@ export function countTasksInColumn(columnId: string) {
   return db.task.count({ where: { columnId } });
 }
 
-/** Rewrites every column position in one transaction so ordering is atomic. */
 export function reorderColumns(projectId: string, columnIds: readonly string[]) {
   return db.$transaction(
     columnIds.map((id, index) =>

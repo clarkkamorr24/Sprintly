@@ -48,10 +48,6 @@ export function findProjectById(projectId: string) {
   });
 }
 
-/**
- * Creates the project, its member list, and the default board columns in one
- * transaction so a project can never exist without a usable board.
- */
 export function createProjectWithBoard(input: {
   workspaceId: string;
   name: string;
@@ -110,4 +106,25 @@ export function countProjectsByStatus(workspaceId: string) {
     where: { workspaceId },
     _count: { _all: true },
   });
+}
+
+/**
+ * Resolves @mention handles to project members. A handle is the lowercased
+ * first word of a user's name; matching is scoped to the project so a mention
+ * can never reach outside it.
+ */
+export async function findProjectMembersByHandle(
+  projectId: string,
+  handles: readonly string[]
+) {
+  const members = await db.projectMember.findMany({
+    where: { projectId },
+    select: { user: { select: { id: true, name: true } } },
+  });
+
+  const wanted = new Set(handles.map((h) => h.toLowerCase()));
+
+  return members
+    .map((m) => m.user)
+    .filter((user) => wanted.has(user.name.split(/\s+/)[0].toLowerCase()));
 }

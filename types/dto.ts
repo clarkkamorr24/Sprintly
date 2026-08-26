@@ -1,5 +1,6 @@
 import type {
   ActivityType,
+  NotificationType,
   ProjectStatus,
   TaskPriority,
   WorkspaceRole,
@@ -129,9 +130,19 @@ export interface ActivityEntryDTO {
 
 export interface TaskDetailBundle {
   readonly task: TaskDetailDTO;
-  /** Whether the viewer may edit this specific task, per ownership rules. */
   readonly canEdit: boolean;
   readonly subtasks: readonly SubtaskDTO[];
   readonly comments: Paginated<CommentDTO>;
   readonly activity: Paginated<ActivityEntryDTO>;
+}
+
+export interface NotificationDTO {
+  readonly id: string;
+  readonly type: NotificationType;
+  readonly title: string;
+  readonly body: string | null;
+  readonly actor: UserDTO | null;
+  readonly isRead: boolean;
+  readonly createdAt: string;
+  readonly href: string | null;
 }

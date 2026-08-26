@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 
+import { NotificationBell } from "@/components/notifications/notification-bell";
 import { UserMenu } from "@/components/shared/user-menu";
 import { CreateWorkspaceDialog } from "@/components/workspace/create-workspace-dialog";
 import { WorkspaceSwitcher } from "@/components/workspace/workspace-switcher";
@@ -13,9 +14,10 @@ import type { WorkspaceDTO } from "@/types/dto";
 interface AppHeaderProps {
   readonly user: SessionUser;
   readonly workspaces: readonly WorkspaceDTO[];
+  readonly unreadCount: number;
 }
 
-export function AppHeader({ user, workspaces }: AppHeaderProps) {
+export function AppHeader({ user, workspaces, unreadCount }: AppHeaderProps) {
   const [isCreateOpen, setCreateOpen] = useState(false);
   const params = useParams<{ workspaceId?: string }>();
 
@@ -42,7 +44,8 @@ export function AppHeader({ user, workspaces }: AppHeaderProps) {
             onCreate={() => setCreateOpen(true)}
           />
 
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex items-center gap-1">
+            <NotificationBell initialUnreadCount={unreadCount} />
             <UserMenu user={user} />
           </div>
         </div>

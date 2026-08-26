@@ -3,10 +3,15 @@ import "server-only";
 import { requireProjectAccess } from "@/lib/auth/guards";
 import { canModifyTask, hasAtLeastRole, PERMISSIONS, can } from "@/lib/auth/permissions";
 import { ForbiddenError, NotFoundError, ValidationError } from "@/lib/errors";
-import { ActivityType, WorkspaceRole } from "@/lib/generated/prisma/enums";
+import {
+  ActivityType,
+  NotificationType,
+  WorkspaceRole,
+} from "@/lib/generated/prisma/enums";
 import * as activityRepo from "@/repositories/activity-repository";
 import * as boardRepo from "@/repositories/board-repository";
 import * as repo from "@/repositories/task-repository";
+import * as notificationService from "@/services/notification-service";
 import type {
   CreateTaskInput,
   DeleteTaskInput,
@@ -52,7 +57,6 @@ function parseDueDate(value: string | null | undefined): Date | null {
   return parsed;
 }
 
-/** Rejects assignees or labels that live outside the project's workspace. */
 async function assertMembersAndLabels(
   projectId: string,
   assigneeIds: readonly string[],
@@ -127,6 +131,19 @@ export async function createTask(
     metadata: { taskTitle: task.title, column: column.name },
   });
 
+  await notificationService.notify(
+    input.assigneeIds.map((recipientId) => ({
+      recipientId,
+      actorId: context.user.id,
+      type: NotificationType.TASK_ASSIGNED,
+      title: `${context.user.name} assigned you "${task.title}"`,
+      workspaceId: context.workspaceId,
+      projectId: input.projectId,
+      taskId: task.id,
+    })),
+    context.user.id
+  );
+
   return toTaskDetailDTO(task);
 }
 
@@ -174,6 +191,24 @@ export async function updateTask(
     metadata: { taskTitle: task.title },
   });
 
+  const previousAssignees = new Set(existing.assignees.map((a) => a.userId));
+  const newlyAssigned = input.assigneeIds.filter(
+    (id) => !previousAssignees.has(id)
+  );
+
+  await notificationService.notify(
+    newlyAssigned.map((recipientId) => ({
+      recipientId,
+      actorId: context.user.id,
+      type: NotificationType.TASK_ASSIGNED,
+      title: `${context.user.name} assigned you "${task.title}"`,
+      workspaceId: context.workspaceId,
+      projectId: existing.projectId,
+      taskId: task.id,
+    })),
+    context.user.id
+  );
+
   return toTaskDetailDTO(task);
 }
 
@@ -202,7 +237,6 @@ export async function deleteTask(input: DeleteTaskInput): Promise<void> {
   });
 }
 
-/** Mirrors the ownership rule enforced by updateTask, so UI and server agree. */
 export async function canViewerEditTask(taskId: string): Promise<boolean> {
   const task = await repo.findTaskOwnership(taskId);
   if (!task) return false;

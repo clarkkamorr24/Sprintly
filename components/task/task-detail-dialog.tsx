@@ -56,10 +56,6 @@ interface TaskDetailContentProps {
   readonly onMutated: () => void;
 }
 
-/**
- * Keyed by task id so opening a different task remounts with fresh state,
- * which removes the need to reset state from an effect.
- */
 function TaskDetailContent({
   taskId,
   canComment,

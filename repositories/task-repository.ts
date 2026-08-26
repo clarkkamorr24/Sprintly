@@ -35,6 +35,7 @@ export function findTaskOwnership(taskId: string) {
     where: { id: taskId },
     select: {
       id: true,
+      title: true,
       projectId: true,
       createdById: true,
       assignees: { select: { userId: true } },
@@ -75,10 +76,6 @@ export function createTask(input: {
   });
 }
 
-/**
- * Replaces assignees and labels inside one transaction so a task never ends up
- * with a partially applied set.
- */
 export function updateTask(input: {
   taskId: string;
   title: string;

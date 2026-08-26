@@ -3,10 +3,16 @@ import "server-only";
 import { requireProjectAccess } from "@/lib/auth/guards";
 import { can, hasAtLeastRole, PERMISSIONS } from "@/lib/auth/permissions";
 import { ForbiddenError, NotFoundError } from "@/lib/errors";
-import { ActivityType, WorkspaceRole } from "@/lib/generated/prisma/enums";
+import {
+  ActivityType,
+  NotificationType,
+  WorkspaceRole,
+} from "@/lib/generated/prisma/enums";
 import * as activityRepo from "@/repositories/activity-repository";
 import * as repo from "@/repositories/comment-repository";
+import * as memberRepo from "@/repositories/project-repository";
 import * as taskRepo from "@/repositories/task-repository";
+import * as notificationService from "@/services/notification-service";
 import type {
   CreateCommentInput,
   DeleteCommentInput,
@@ -88,7 +94,74 @@ export async function createComment(
     metadata: {},
   });
 
+  await notifyCommentRecipients({
+    body: input.body,
+    task,
+    context,
+    excerpt: input.body.slice(0, 140),
+  });
+
   return toCommentDTO(comment, context.user.id, context.role);
+}
+
+type CommentContext = Awaited<ReturnType<typeof requireProjectAccess>>;
+type CommentTask = NonNullable<
+  Awaited<ReturnType<typeof taskRepo.findTaskOwnership>>
+>;
+
+/**
+ * Mentioned users are resolved against project membership, so a mention can
+ * never notify someone outside the project.
+ */
+async function notifyCommentRecipients(input: {
+  body: string;
+  task: CommentTask;
+  context: CommentContext;
+  excerpt: string;
+}): Promise<void> {
+  const { task, context } = input;
+
+  const mentionedNames = [...input.body.matchAll(/@([\w.-]+)/g)].map((m) =>
+    m[1].toLowerCase()
+  );
+
+  const mentioned = mentionedNames.length
+    ? await memberRepo.findProjectMembersByHandle(task.projectId, mentionedNames)
+    : [];
+
+  const mentionNotifications = mentioned.map((user) => ({
+    recipientId: user.id,
+    actorId: context.user.id,
+    type: NotificationType.COMMENT_MENTION,
+    title: `${context.user.name} mentioned you on "${task.title}"`,
+    body: input.excerpt,
+    workspaceId: context.workspaceId,
+    projectId: task.projectId,
+    taskId: task.id,
+  }));
+
+  const mentionedIds = new Set(mentioned.map((u) => u.id));
+
+  const followers = [
+    task.createdById,
+    ...task.assignees.map((a) => a.userId),
+  ].filter((id) => !mentionedIds.has(id));
+
+  const followerNotifications = followers.map((recipientId) => ({
+    recipientId,
+    actorId: context.user.id,
+    type: NotificationType.COMMENT_ADDED,
+    title: `${context.user.name} commented on "${task.title}"`,
+    body: input.excerpt,
+    workspaceId: context.workspaceId,
+    projectId: task.projectId,
+    taskId: task.id,
+  }));
+
+  await notificationService.notify(
+    [...mentionNotifications, ...followerNotifications],
+    context.user.id
+  );
 }
 
 export async function updateComment(

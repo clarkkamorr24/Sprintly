@@ -6,10 +6,6 @@ function text(metadata: Readonly<Record<string, unknown>>, key: string): string 
   return typeof value === "string" ? value : "";
 }
 
-/**
- * Renders an activity entry as a sentence, e.g.
- * `Clark moved "Implement authentication" from "To Do" to "In Progress"`.
- */
 export function describeActivity(entry: ActivityEntryDTO): string {
   const { metadata } = entry;
   const title = text(metadata, "taskTitle");

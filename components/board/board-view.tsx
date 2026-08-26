@@ -30,6 +30,10 @@ export function BoardView({
   const [addToColumn, setAddToColumn] = useState<string | null>(null);
   const [openTaskId, setOpenTaskId] = useState<string | null>(null);
 
+  const boardKey = columns
+    .map((column) => `${column.id}:${column.tasks.map((t) => t.id).join(",")}`)
+    .join("|");
+
   const handleDelete = (task: TaskCardDTO) => {
     startTransition(async () => {
       const result = await deleteTaskAction({ taskId: task.id });
@@ -46,7 +50,10 @@ export function BoardView({
 
   return (
     <>
+      {/* Keyed by the server's task set so a filter change remounts the board
+          with fresh data instead of keeping stale optimistic state. */}
       <KanbanBoard
+        key={boardKey}
         initialColumns={columns}
         canCreateTask={canCreateTask}
         onOpenTask={(taskId) => setOpenTaskId(taskId)}

@@ -1,13 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { BoardFilters } from "@/components/board/board-filters";
 import { BoardView } from "@/components/board/board-view";
 import { EmptyState } from "@/components/shared/empty-state";
 import { requireProjectAccess } from "@/lib/auth/guards";
 import { can, PERMISSIONS } from "@/lib/auth/permissions";
 import { loadPage } from "@/lib/page-guard";
+import { boardFiltersSchema } from "@/schemas/task";
 import { getBoard, getBoardMeta } from "@/services/board-service";
 import { getProject } from "@/services/project-service";
+
+function single(value: string | string[] | undefined): string | undefined {
+  const first = Array.isArray(value) ? value[0] : value;
+  return first?.trim() || undefined;
+}
 
 export async function generateMetadata(
   props: PageProps<"/projects/[projectId]">
@@ -26,21 +33,35 @@ export default async function ProjectBoardPage(
   props: PageProps<"/projects/[projectId]">
 ) {
   const { projectId } = await props.params;
+  const searchParams = await props.searchParams;
+
+  const filters = boardFiltersSchema.parse({
+    search: single(searchParams.search),
+    assigneeId: single(searchParams.assigneeId),
+    priority: single(searchParams.priority),
+    labelId: single(searchParams.labelId),
+    due: single(searchParams.due),
+  });
 
   const [context, project, board, meta] = await loadPage(() =>
     Promise.all([
       requireProjectAccess(projectId),
       getProject(projectId),
-      getBoard(projectId),
+      getBoard(projectId, filters),
       getBoardMeta(projectId),
     ])
   );
 
-  const hasTasks = board.columns.some((column) => column.tasks.length > 0);
+  const taskCount = board.columns.reduce(
+    (total, column) => total + column.tasks.length,
+    0
+  );
+  const hasTasks = taskCount > 0;
+  const hasFilters = Object.values(filters).some(Boolean);
 
   return (
     <main className="flex flex-1 flex-col gap-6 px-4 py-8">
-      <header className="mx-auto flex w-full max-w-7xl flex-wrap items-start gap-3">
+      <header className="mx-auto flex w-full max-w-[1920px] flex-wrap items-start gap-3">
         <div className="min-w-0 flex-1 space-y-1">
           <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
             <Link
@@ -66,7 +87,7 @@ export default async function ProjectBoardPage(
         </div>
       </header>
 
-      <div className="mx-auto w-full max-w-7xl">
+      <div className="mx-auto w-full max-w-[1920px] space-y-4">
         {board.columns.length === 0 ? (
           <EmptyState
             title="This board has no columns"
@@ -74,11 +95,19 @@ export default async function ProjectBoardPage(
           />
         ) : (
           <>
-            {!hasTasks ? (
-              <p className="mb-4 text-sm text-muted-foreground">
+            <BoardFilters
+              projectId={projectId}
+              members={meta.members}
+              labels={meta.labels}
+              resultCount={taskCount}
+            />
+
+            {!hasTasks && !hasFilters ? (
+              <p className="text-sm text-muted-foreground">
                 This board is empty. Add your first task to a column below.
               </p>
             ) : null}
+
             <BoardView
               projectId={projectId}
               columns={board.columns}

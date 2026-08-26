@@ -31,10 +31,6 @@ function toSubtaskDTO(subtask: SubtaskRecord): SubtaskDTO {
   };
 }
 
-/**
- * Subtasks inherit the parent task's permissions: whoever may edit the task
- * may manage its checklist.
- */
 async function requireTaskEditable(taskId: string) {
   const task = await taskRepo.findTaskOwnership(taskId);
   if (!task) throw new NotFoundError("Task not found.");

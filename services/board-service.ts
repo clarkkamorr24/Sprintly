@@ -3,9 +3,13 @@ import "server-only";
 import { requireProjectAccess, requireProjectPermission } from "@/lib/auth/guards";
 import { canModifyTask, PERMISSIONS } from "@/lib/auth/permissions";
 import { ConflictError, ForbiddenError, NotFoundError } from "@/lib/errors";
-import { ActivityType } from "@/lib/generated/prisma/enums";
+import {
+  ActivityType,
+  NotificationType,
+} from "@/lib/generated/prisma/enums";
 import * as activityRepo from "@/repositories/activity-repository";
 import * as repo from "@/repositories/board-repository";
+import * as notificationService from "@/services/notification-service";
 import type { BoardFilters } from "@/schemas/task";
 import type {
   CreateColumnInput,
@@ -218,11 +222,6 @@ export async function reorderColumns(input: ReorderColumnsInput): Promise<void> 
   });
 }
 
-/**
- * Moves a task to a position within a column. The destination order is rebuilt
- * server-side from the persisted ids rather than trusting a client-sent list,
- * and the whole column is renumbered in one transaction.
- */
 export async function moveTask(input: MoveTaskInput): Promise<void> {
   const task = await repo.findTaskForMove(input.taskId);
   if (!task) throw new NotFoundError("Task not found.");
@@ -275,4 +274,19 @@ export async function moveTask(input: MoveTaskInput): Promise<void> {
       ? { taskTitle: task.title, from: task.column.name, to: targetColumn.name }
       : { taskTitle: task.title, reordered: true },
   });
+
+  if (changedColumn) {
+    await notificationService.notify(
+      task.assignees.map((assignee) => ({
+        recipientId: assignee.userId,
+        actorId: context.user.id,
+        type: NotificationType.TASK_STATUS_CHANGED,
+        title: `${context.user.name} moved "${task.title}" to ${targetColumn.name}`,
+        workspaceId: context.workspaceId,
+        projectId: task.projectId,
+        taskId: task.id,
+      })),
+      context.user.id
+    );
+  }
 }

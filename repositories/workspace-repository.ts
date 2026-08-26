@@ -67,7 +67,6 @@ export function countOwners(workspaceId: string) {
   });
 }
 
-/** Creates the workspace and its owner membership atomically. */
 export function createWorkspaceWithOwner(input: {
   name: string;
   slug: string;
