@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 
+import { WorkspaceDashboard } from "@/components/dashboard/workspace-dashboard";
 import { ProjectList } from "@/components/project/project-list";
 import { requireWorkspaceAccess } from "@/lib/auth/guards";
 import { can, PERMISSIONS } from "@/lib/auth/permissions";
 import { loadPage } from "@/lib/page-guard";
+import { getDashboard } from "@/services/dashboard-service";
 import { listProjects } from "@/services/project-service";
 import { getWorkspace } from "@/services/workspace-service";
 
@@ -25,16 +27,17 @@ export default async function WorkspacePage(
 ) {
   const { workspaceId } = await props.params;
 
-  const [context, workspace, projects] = await loadPage(() =>
+  const [context, workspace, projects, dashboard] = await loadPage(() =>
     Promise.all([
       requireWorkspaceAccess(workspaceId),
       getWorkspace(workspaceId),
       listProjects({ workspaceId }),
+      getDashboard(workspaceId),
     ])
   );
 
   return (
-    <main className="mx-auto w-full max-w-6xl flex-1 space-y-6 px-4 py-8">
+    <main className="mx-auto w-full max-w-7xl flex-1 space-y-6 px-4 py-8">
       <header className="space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight">
           {workspace.name}
@@ -43,6 +46,8 @@ export default async function WorkspacePage(
           <p className="text-sm text-muted-foreground">{workspace.description}</p>
         ) : null}
       </header>
+
+      <WorkspaceDashboard dashboard={dashboard} />
 
       <ProjectList
         workspaceId={workspaceId}

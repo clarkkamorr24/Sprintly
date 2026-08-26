@@ -126,6 +126,7 @@ export interface ActivityEntryDTO {
   readonly actor: UserDTO;
   readonly metadata: Readonly<Record<string, unknown>>;
   readonly createdAt: string;
+  readonly project?: { readonly id: string; readonly name: string } | null;
 }
 
 export interface TaskDetailBundle {
@@ -145,4 +146,34 @@ export interface NotificationDTO {
   readonly isRead: boolean;
   readonly createdAt: string;
   readonly href: string | null;
+}
+
+export interface MyTaskDTO {
+  readonly id: string;
+  readonly title: string;
+  readonly priority: TaskPriority;
+  readonly dueDate: string | null;
+  readonly columnName: string;
+  readonly project: { readonly id: string; readonly name: string; readonly color: string };
+}
+
+export interface DashboardStatsDTO {
+  readonly totalProjects: number;
+  readonly activeProjects: number;
+  readonly totalTasks: number;
+  readonly completedTasks: number;
+  readonly overdueTasks: number;
+  readonly myOpenTasks: number;
+}
+
+export interface PriorityBreakdownDTO {
+  readonly priority: TaskPriority;
+  readonly count: number;
+}
+
+export interface DashboardDTO {
+  readonly stats: DashboardStatsDTO;
+  readonly byPriority: readonly PriorityBreakdownDTO[];
+  readonly myTasks: readonly MyTaskDTO[];
+  readonly recentActivity: readonly ActivityEntryDTO[];
 }
