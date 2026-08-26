@@ -201,3 +201,16 @@ export async function deleteTask(input: DeleteTaskInput): Promise<void> {
     metadata: { taskTitle: task?.title ?? "" },
   });
 }
+
+/** Mirrors the ownership rule enforced by updateTask, so UI and server agree. */
+export async function canViewerEditTask(taskId: string): Promise<boolean> {
+  const task = await repo.findTaskOwnership(taskId);
+  if (!task) return false;
+
+  const context = await requireProjectAccess(task.projectId);
+
+  return canModifyTask(context.role, context.user.id, {
+    createdById: task.createdById,
+    assigneeIds: task.assignees.map((a) => a.userId),
+  });
+}

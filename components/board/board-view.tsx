@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { deleteTaskAction } from "@/app/actions/task-actions";
 import { CreateTaskDialog } from "@/components/board/create-task-dialog";
 import { KanbanBoard } from "@/components/board/kanban-board";
+import { TaskDetailDialog } from "@/components/task/task-detail-dialog";
 import type { BoardColumnDTO, TaskCardDTO, UserDTO } from "@/types/dto";
 
 interface BoardViewProps {
@@ -14,6 +15,7 @@ interface BoardViewProps {
   readonly columns: readonly BoardColumnDTO[];
   readonly members: readonly UserDTO[];
   readonly canCreateTask: boolean;
+  readonly canComment: boolean;
 }
 
 export function BoardView({
@@ -21,10 +23,12 @@ export function BoardView({
   columns,
   members,
   canCreateTask,
+  canComment,
 }: BoardViewProps) {
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [addToColumn, setAddToColumn] = useState<string | null>(null);
+  const [openTaskId, setOpenTaskId] = useState<string | null>(null);
 
   const handleDelete = (task: TaskCardDTO) => {
     startTransition(async () => {
@@ -45,7 +49,7 @@ export function BoardView({
       <KanbanBoard
         initialColumns={columns}
         canCreateTask={canCreateTask}
-        onOpenTask={() => toast.info("Task details arrive in the next stage.")}
+        onOpenTask={(taskId) => setOpenTaskId(taskId)}
         onAddTask={(columnId) => setAddToColumn(columnId)}
         onDeleteTask={handleDelete}
       />
@@ -58,6 +62,15 @@ export function BoardView({
         onOpenChange={(open) => {
           if (!open) setAddToColumn(null);
         }}
+      />
+
+      <TaskDetailDialog
+        taskId={openTaskId}
+        canComment={canComment}
+        onOpenChange={(open) => {
+          if (!open) setOpenTaskId(null);
+        }}
+        onMutated={() => router.refresh()}
       />
     </>
   );

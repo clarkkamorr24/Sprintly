@@ -1,8 +1,10 @@
 import type {
+  ActivityType,
   ProjectStatus,
   TaskPriority,
   WorkspaceRole,
 } from "@/lib/generated/prisma/enums";
+import type { Paginated } from "@/types/api";
 
 export interface UserDTO {
   readonly id: string;
@@ -96,4 +98,40 @@ export interface TaskDetailDTO {
   readonly commentCount: number;
   readonly createdAt: string;
   readonly updatedAt: string;
+}
+
+export interface SubtaskDTO {
+  readonly id: string;
+  readonly title: string;
+  readonly isCompleted: boolean;
+  readonly position: number;
+  readonly assignee: UserDTO | null;
+  readonly dueDate: string | null;
+}
+
+export interface CommentDTO {
+  readonly id: string;
+  readonly body: string;
+  readonly author: UserDTO;
+  readonly createdAt: string;
+  readonly editedAt: string | null;
+  readonly canEdit: boolean;
+  readonly canDelete: boolean;
+}
+
+export interface ActivityEntryDTO {
+  readonly id: string;
+  readonly type: ActivityType;
+  readonly actor: UserDTO;
+  readonly metadata: Readonly<Record<string, unknown>>;
+  readonly createdAt: string;
+}
+
+export interface TaskDetailBundle {
+  readonly task: TaskDetailDTO;
+  /** Whether the viewer may edit this specific task, per ownership rules. */
+  readonly canEdit: boolean;
+  readonly subtasks: readonly SubtaskDTO[];
+  readonly comments: Paginated<CommentDTO>;
+  readonly activity: Paginated<ActivityEntryDTO>;
 }

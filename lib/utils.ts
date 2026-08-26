@@ -37,3 +37,22 @@ export function formatDueDate(dueDate: string): string {
     year: due.getFullYear() === today.getFullYear() ? undefined : "numeric",
   })
 }
+
+export function formatRelativeTime(iso: string): string {
+  const then = new Date(iso).getTime()
+  const seconds = Math.round((then - Date.now()) / 1000)
+  const abs = Math.abs(seconds)
+
+  const formatter = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" })
+
+  if (abs < 60) return formatter.format(Math.round(seconds), "second")
+  if (abs < 3600) return formatter.format(Math.round(seconds / 60), "minute")
+  if (abs < 86400) return formatter.format(Math.round(seconds / 3600), "hour")
+  if (abs < 2592000) return formatter.format(Math.round(seconds / 86400), "day")
+
+  return new Date(iso).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  })
+}
