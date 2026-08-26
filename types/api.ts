@@ -1,9 +1,11 @@
 import type { ErrorCode } from "@/lib/errors";
 
+export type FieldErrors = Readonly<Record<string, readonly string[]>>;
+
 export interface ApiError {
   readonly code: ErrorCode;
   readonly message: string;
-  readonly fieldErrors?: Readonly<Record<string, readonly string[]>>;
+  readonly fieldErrors?: FieldErrors;
 }
 
 export type ApiResponse<T> =
