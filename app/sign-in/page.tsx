@@ -30,8 +30,9 @@ export default async function SignInPage(props: PageProps<"/sign-in">) {
         <CardHeader>
           <CardTitle>Sign in to Sprintly</CardTitle>
           <CardDescription>
-            Development sign-in. Supabase Auth replaces this without changing
-            any calling code.
+            {searchParams.signedOut
+              ? "Your previous session is no longer valid. Sign in again."
+              : "Development sign-in. Supabase Auth replaces this without changing any calling code."}
           </CardDescription>
         </CardHeader>
         <CardContent>

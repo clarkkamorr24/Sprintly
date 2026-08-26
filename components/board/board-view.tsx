@@ -8,6 +8,8 @@ import { deleteTaskAction } from "@/app/actions/task-actions";
 import { CreateTaskDialog } from "@/components/board/create-task-dialog";
 import { KanbanBoard } from "@/components/board/kanban-board";
 import { TaskDetailDialog } from "@/components/task/task-detail-dialog";
+import { useRealtimeChannel } from "@/hooks/use-realtime-channel";
+import { REALTIME_EVENT, projectChannel } from "@/types/realtime";
 import type { BoardColumnDTO, TaskCardDTO, UserDTO } from "@/types/dto";
 
 interface BoardViewProps {
@@ -16,6 +18,7 @@ interface BoardViewProps {
   readonly members: readonly UserDTO[];
   readonly canCreateTask: boolean;
   readonly canComment: boolean;
+  readonly currentUserId: string;
 }
 
 export function BoardView({
@@ -24,11 +27,21 @@ export function BoardView({
   members,
   canCreateTask,
   canComment,
+  currentUserId,
 }: BoardViewProps) {
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [addToColumn, setAddToColumn] = useState<string | null>(null);
   const [openTaskId, setOpenTaskId] = useState<string | null>(null);
+
+  useRealtimeChannel({
+    channel: projectChannel(projectId),
+    event: REALTIME_EVENT.BOARD_CHANGED,
+    onEvent: (payload) => {
+      if (payload.actorId === currentUserId) return;
+      router.refresh();
+    },
+  });
 
   const boardKey = columns
     .map((column) => `${column.id}:${column.tasks.map((t) => t.id).join(",")}`)

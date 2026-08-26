@@ -1,9 +1,12 @@
 import { redirect } from "next/navigation";
 
 import { EmptyState } from "@/components/shared/empty-state";
+import { requireUserOrRedirect } from "@/lib/auth/session";
 import { listWorkspaces } from "@/services/workspace-service";
 
 export default async function HomePage() {
+  await requireUserOrRedirect();
+
   const workspaces = await listWorkspaces();
 
   if (workspaces.length > 0) {

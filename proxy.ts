@@ -15,7 +15,9 @@ export function proxy(request: NextRequest): NextResponse {
     return NextResponse.redirect(signInUrl);
   }
 
-  if (hasSession && isPublic) {
+  const isRecovering = request.nextUrl.searchParams.has("signedOut");
+
+  if (hasSession && isPublic && !isRecovering) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 

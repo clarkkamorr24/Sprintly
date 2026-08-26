@@ -114,6 +114,7 @@ export default async function ProjectBoardPage(
               members={meta.members}
               canCreateTask={can(context.role, PERMISSIONS.TASK_CREATE)}
               canComment={can(context.role, PERMISSIONS.COMMENT_CREATE)}
+              currentUserId={context.user.id}
             />
           </>
         )}

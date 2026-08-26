@@ -21,15 +21,21 @@ import {
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useRealtimeChannel } from "@/hooks/use-realtime-channel";
 import { PAGE_SIZE } from "@/lib/constants";
 import { cn, formatRelativeTime } from "@/lib/utils";
+import { REALTIME_EVENT, userChannel } from "@/types/realtime";
 import type { NotificationDTO } from "@/types/dto";
 
 interface NotificationBellProps {
   readonly initialUnreadCount: number;
+  readonly currentUserId: string;
 }
 
-export function NotificationBell({ initialUnreadCount }: NotificationBellProps) {
+export function NotificationBell({
+  initialUnreadCount,
+  currentUserId,
+}: NotificationBellProps) {
   const [unreadCount, setUnreadCount] = useState(initialUnreadCount);
   const [notifications, setNotifications] = useState<
     readonly NotificationDTO[] | null
@@ -52,6 +58,15 @@ export function NotificationBell({ initialUnreadCount }: NotificationBellProps) 
       setNotifications(result.data.items);
     });
   }, []);
+
+  useRealtimeChannel({
+    channel: userChannel(currentUserId),
+    event: REALTIME_EVENT.NOTIFICATION_CREATED,
+    onEvent: () => {
+      setUnreadCount((count) => count + 1);
+      if (notifications !== null) load();
+    },
+  });
 
   const handleOpenChange = (open: boolean) => {
     if (open) load();

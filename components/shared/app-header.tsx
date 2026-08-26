@@ -45,7 +45,10 @@ export function AppHeader({ user, workspaces, unreadCount }: AppHeaderProps) {
           />
 
           <div className="ml-auto flex items-center gap-1">
-            <NotificationBell initialUnreadCount={unreadCount} />
+            <NotificationBell
+              initialUnreadCount={unreadCount}
+              currentUserId={user.id}
+            />
             <UserMenu user={user} />
           </div>
         </div>

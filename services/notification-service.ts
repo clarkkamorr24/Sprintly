@@ -2,6 +2,7 @@ import "server-only";
 
 import { requireUser } from "@/lib/auth/session";
 import { NotFoundError } from "@/lib/errors";
+import { broadcastNotificationCreated } from "@/lib/realtime/server";
 import * as repo from "@/repositories/notification-repository";
 import type {
   DeleteNotificationInput,
@@ -103,5 +104,13 @@ export async function notify(
     return true;
   });
 
+  if (deliverable.length === 0) return;
+
   await repo.createNotifications(deliverable);
+
+  await Promise.all(
+    [...new Set(deliverable.map((n) => n.recipientId))].map((recipientId) =>
+      broadcastNotificationCreated({ recipientId })
+    )
+  );
 }

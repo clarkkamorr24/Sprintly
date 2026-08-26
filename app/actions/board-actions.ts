@@ -1,8 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 
 import { handleAction } from "@/lib/api-response";
+import { broadcastBoardChanged } from "@/lib/realtime/server";
 import { parseInput } from "@/lib/validation";
 import * as boardService from "@/services/board-service";
 import {
@@ -67,7 +69,10 @@ export async function moveTaskAction(
 ): Promise<ApiResponse<null>> {
   return handleAction("moveTaskAction", async () => {
     const data = parseInput(moveTaskSchema, input);
-    await boardService.moveTask(data);
+    const { projectId, actorId } = await boardService.moveTask(data);
+
+    // Broadcast after the response so realtime never delays the mutation.
+    after(() => broadcastBoardChanged({ projectId, actorId }));
 
     return null;
   });

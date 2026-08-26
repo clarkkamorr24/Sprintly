@@ -1,15 +1,12 @@
-import { redirect } from "next/navigation";
-
 import { AppHeader } from "@/components/shared/app-header";
-import { getCurrentUser } from "@/lib/auth/session";
+import { requireUserOrRedirect } from "@/lib/auth/session";
 import { getUnreadCount } from "@/services/notification-service";
 import { listWorkspaces } from "@/services/workspace-service";
 
 export const dynamic = "force-dynamic";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
-  const user = await getCurrentUser();
-  if (!user) redirect("/sign-in");
+  const user = await requireUserOrRedirect();
 
   const [workspaces, unreadCount] = await Promise.all([
     listWorkspaces(),

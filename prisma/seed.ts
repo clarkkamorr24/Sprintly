@@ -7,7 +7,7 @@ import { DEFAULT_BOARD_COLUMNS, POSITION_STEP } from "../lib/constants";
 
 const db = new PrismaClient({
   adapter: new PrismaPg({
-    connectionString: process.env.DATABASE_URL!,
+    connectionString: process.env.DIRECT_URL || process.env.DATABASE_URL!,
     max: 1,
   }),
 });

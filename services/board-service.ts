@@ -222,7 +222,9 @@ export async function reorderColumns(input: ReorderColumnsInput): Promise<void> 
   });
 }
 
-export async function moveTask(input: MoveTaskInput): Promise<void> {
+export async function moveTask(
+  input: MoveTaskInput
+): Promise<{ projectId: string; actorId: string }> {
   const task = await repo.findTaskForMove(input.taskId);
   if (!task) throw new NotFoundError("Task not found.");
 
@@ -289,4 +291,6 @@ export async function moveTask(input: MoveTaskInput): Promise<void> {
       context.user.id
     );
   }
+
+  return { projectId: task.projectId, actorId: context.user.id };
 }

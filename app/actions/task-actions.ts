@@ -1,9 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 
 import { handleAction } from "@/lib/api-response";
 import { PAGE_SIZE } from "@/lib/constants";
+import { requireUser } from "@/lib/auth/session";
+import { broadcastBoardChanged } from "@/lib/realtime/server";
 import { parseInput } from "@/lib/validation";
 import * as activityService from "@/services/activity-service";
 import * as commentService from "@/services/comment-service";
@@ -23,9 +26,13 @@ export async function createTaskAction(
 ): Promise<ApiResponse<TaskDetailDTO>> {
   return handleAction("createTaskAction", async () => {
     const data = parseInput(createTaskSchema, input);
+    const actor = await requireUser();
     const task = await taskService.createTask(data);
 
     revalidatePath(`/projects/${data.projectId}`);
+    after(() =>
+      broadcastBoardChanged({ projectId: data.projectId, actorId: actor.id })
+    );
     return task;
   });
 }
@@ -35,9 +42,13 @@ export async function updateTaskAction(
 ): Promise<ApiResponse<TaskDetailDTO>> {
   return handleAction("updateTaskAction", async () => {
     const data = parseInput(updateTaskSchema, input);
+    const actor = await requireUser();
     const task = await taskService.updateTask(data);
 
     revalidatePath(`/projects/${task.projectId}`);
+    after(() =>
+      broadcastBoardChanged({ projectId: task.projectId, actorId: actor.id })
+    );
     return task;
   });
 }
@@ -47,9 +58,14 @@ export async function deleteTaskAction(
 ): Promise<ApiResponse<null>> {
   return handleAction("deleteTaskAction", async () => {
     const data = parseInput(deleteTaskSchema, input);
+    const actor = await requireUser();
+    const task = await taskService.getTask(data.taskId);
     await taskService.deleteTask(data);
 
     revalidatePath("/projects", "layout");
+    after(() =>
+      broadcastBoardChanged({ projectId: task.projectId, actorId: actor.id })
+    );
     return null;
   });
 }

@@ -1,7 +1,12 @@
 "use server";
 
+import { after } from "next/server";
+
 import { handleAction } from "@/lib/api-response";
+import { requireUser } from "@/lib/auth/session";
+import { broadcastTaskChanged } from "@/lib/realtime/server";
 import { parseInput } from "@/lib/validation";
+import * as taskService from "@/services/task-service";
 import * as commentService from "@/services/comment-service";
 import {
   createCommentSchema,
@@ -26,7 +31,19 @@ export async function createCommentAction(
 ): Promise<ApiResponse<CommentDTO>> {
   return handleAction("createCommentAction", async () => {
     const data = parseInput(createCommentSchema, input);
-    return commentService.createComment(data);
+    const comment = await commentService.createComment(data);
+
+    const actor = await requireUser();
+    const task = await taskService.getTask(data.taskId);
+    after(() =>
+      broadcastTaskChanged({
+        projectId: task.projectId,
+        taskId: data.taskId,
+        actorId: actor.id,
+      })
+    );
+
+    return comment;
   });
 }
 
