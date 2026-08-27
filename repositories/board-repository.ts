@@ -8,7 +8,11 @@ import { userSelect } from "@/repositories/workspace-repository";
 const taskCardSelect = {
   id: true,
   columnId: true,
+  number: true,
+  type: true,
+  storyPoints: true,
   title: true,
+  project: { select: { key: true } },
   priority: true,
   position: true,
   dueDate: true,
@@ -16,6 +20,8 @@ const taskCardSelect = {
   assignees: { select: { user: { select: userSelect } } },
   labels: { select: { label: { select: { id: true, name: true, color: true } } } },
   subtasks: { select: { isCompleted: true } },
+  sprintId: true,
+  sprint: { select: { name: true } },
   _count: { select: { comments: true } },
 } as const;
 
@@ -184,5 +190,13 @@ export function findProjectMembers(projectId: string) {
     where: { projectId },
     select: { user: { select: userSelect } },
     orderBy: { joinedAt: "asc" },
+  });
+}
+
+export function findProjectTasks(projectId: string) {
+  return db.task.findMany({
+    where: { projectId },
+    select: taskCardSelect,
+    orderBy: [{ sprintId: { sort: "asc", nulls: "last" } }, { position: "asc" }],
   });
 }

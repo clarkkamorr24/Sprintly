@@ -6,10 +6,12 @@ import { ConflictError, ForbiddenError, NotFoundError } from "@/lib/errors";
 import {
   ActivityType,
   NotificationType,
+  SprintStatus,
 } from "@/lib/generated/prisma/enums";
 import * as activityRepo from "@/repositories/activity-repository";
 import * as repo from "@/repositories/board-repository";
 import * as notificationService from "@/services/notification-service";
+import { listSprints } from "@/services/sprint-service";
 import type { BoardFilters } from "@/schemas/task";
 import type {
   CreateColumnInput,
@@ -22,6 +24,7 @@ import type {
   BoardColumnDTO,
   BoardDTO,
   LabelDTO,
+  SprintDTO,
   TaskCardDTO,
   UserDTO,
 } from "@/types/dto";
@@ -33,6 +36,9 @@ function toTaskCardDTO(task: repo.TaskCardRecord): TaskCardDTO {
   return {
     id: task.id,
     columnId: task.columnId,
+    key: `${task.project.key}-${task.number}`,
+    type: task.type,
+    storyPoints: task.storyPoints,
     title: task.title,
     priority: task.priority,
     position: task.position,
@@ -45,6 +51,8 @@ function toTaskCardDTO(task: repo.TaskCardRecord): TaskCardDTO {
     },
     commentCount: task._count.comments,
     hasDescription: Boolean(task.description?.trim()),
+    sprintId: task.sprintId,
+    sprintName: task.sprint?.name ?? null,
   };
 }
 
@@ -293,4 +301,48 @@ export async function moveTask(
   }
 
   return { projectId: task.projectId, actorId: context.user.id };
+}
+
+export interface BacklogGroup {
+  readonly sprint: SprintDTO | null;
+  readonly tasks: readonly TaskCardDTO[];
+  readonly points: number;
+}
+
+export async function getBacklog(
+  projectId: string
+): Promise<readonly BacklogGroup[]> {
+  await requireProjectAccess(projectId);
+
+  const [tasks, sprints] = await Promise.all([
+    repo.findProjectTasks(projectId),
+    listSprints(projectId),
+  ]);
+
+  const cards = tasks.map(toTaskCardDTO);
+  const openSprints = sprints.filter(
+    (sprint) => sprint.status !== SprintStatus.COMPLETED
+  );
+
+  const groups: BacklogGroup[] = openSprints.map((sprint) => {
+    const owned = cards.filter((task) => task.sprintId === sprint.id);
+    return {
+      sprint,
+      tasks: owned,
+      points: owned.reduce((sum, task) => sum + (task.storyPoints ?? 0), 0),
+    };
+  });
+
+  const sprintIds = new Set(openSprints.map((sprint) => sprint.id));
+  const unassigned = cards.filter(
+    (task) => !task.sprintId || !sprintIds.has(task.sprintId)
+  );
+
+  groups.push({
+    sprint: null,
+    tasks: unassigned,
+    points: unassigned.reduce((sum, task) => sum + (task.storyPoints ?? 0), 0),
+  });
+
+  return groups;
 }

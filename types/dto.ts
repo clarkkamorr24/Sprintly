@@ -1,7 +1,10 @@
 import type {
   ActivityType,
+  InvitationStatus,
+  IssueType,
   NotificationType,
   ProjectStatus,
+  SprintStatus,
   TaskPriority,
   WorkspaceRole,
 } from "@/lib/generated/prisma/enums";
@@ -35,6 +38,7 @@ export interface ProjectDTO {
   readonly id: string;
   readonly workspaceId: string;
   readonly name: string;
+  readonly key: string;
   readonly description: string | null;
   readonly color: string;
   readonly status: ProjectStatus;
@@ -59,6 +63,9 @@ export interface SubtaskProgressDTO {
 export interface TaskCardDTO {
   readonly id: string;
   readonly columnId: string;
+  readonly key: string;
+  readonly type: IssueType;
+  readonly storyPoints: number | null;
   readonly title: string;
   readonly priority: TaskPriority;
   readonly position: number;
@@ -68,6 +75,8 @@ export interface TaskCardDTO {
   readonly subtasks: SubtaskProgressDTO;
   readonly commentCount: number;
   readonly hasDescription: boolean;
+  readonly sprintId: string | null;
+  readonly sprintName: string | null;
 }
 
 export interface BoardColumnDTO {
@@ -87,6 +96,9 @@ export interface TaskDetailDTO {
   readonly id: string;
   readonly projectId: string;
   readonly columnId: string;
+  readonly key: string;
+  readonly type: IssueType;
+  readonly storyPoints: number | null;
   readonly column: { readonly id: string; readonly name: string; readonly isDone: boolean };
   readonly title: string;
   readonly description: string | null;
@@ -176,4 +188,26 @@ export interface DashboardDTO {
   readonly byPriority: readonly PriorityBreakdownDTO[];
   readonly myTasks: readonly MyTaskDTO[];
   readonly recentActivity: readonly ActivityEntryDTO[];
+}
+
+export interface SprintDTO {
+  readonly id: string;
+  readonly projectId: string;
+  readonly name: string;
+  readonly goal: string | null;
+  readonly status: SprintStatus;
+  readonly startDate: string;
+  readonly endDate: string;
+  readonly taskCount: number;
+  readonly completedCount: number;
+}
+
+export interface InvitationDTO {
+  readonly id: string;
+  readonly email: string;
+  readonly role: WorkspaceRole;
+  readonly status: InvitationStatus;
+  readonly invitedBy: UserDTO;
+  readonly expiresAt: string;
+  readonly createdAt: string;
 }

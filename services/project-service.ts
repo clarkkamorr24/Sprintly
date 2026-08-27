@@ -22,6 +22,7 @@ function toProjectDTO(project: repo.ProjectRecord): ProjectDTO {
     id: project.id,
     workspaceId: project.workspaceId,
     name: project.name,
+    key: project.key,
     description: project.description,
     color: project.color,
     status: project.status,
@@ -66,6 +67,7 @@ export async function createProject(
 
   const project = await repo.createProjectWithBoard({
     workspaceId: input.workspaceId,
+    key: await repo.nextProjectKey(input.workspaceId, input.name),
     name: input.name,
     description: input.description?.trim() || null,
     color: input.color,
@@ -96,4 +98,16 @@ export async function deleteProject(input: DeleteProjectInput): Promise<void> {
   await requireProjectPermission(input.projectId, PERMISSIONS.PROJECT_DELETE);
 
   await repo.deleteProject(input.projectId);
+}
+
+export async function getActiveProject(
+  workspaceId: string
+): Promise<{ id: string; name: string; key: string } | null> {
+  try {
+    await requireWorkspaceAccess(workspaceId);
+  } catch {
+    return null;
+  }
+
+  return repo.findFirstProject(workspaceId);
 }

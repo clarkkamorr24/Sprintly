@@ -4,12 +4,15 @@ import Link from "next/link";
 import { BoardFilters } from "@/components/board/board-filters";
 import { BoardView } from "@/components/board/board-view";
 import { EmptyState } from "@/components/shared/empty-state";
+import { SprintBanner } from "@/components/sprint/sprint-banner";
 import { requireProjectAccess } from "@/lib/auth/guards";
 import { can, PERMISSIONS } from "@/lib/auth/permissions";
+import { SprintStatus } from "@/lib/generated/prisma/enums";
 import { loadPage } from "@/lib/page-guard";
 import { boardFiltersSchema } from "@/schemas/task";
 import { getBoard, getBoardMeta } from "@/services/board-service";
 import { getProject } from "@/services/project-service";
+import { listSprints } from "@/services/sprint-service";
 
 function single(value: string | string[] | undefined): string | undefined {
   const first = Array.isArray(value) ? value[0] : value;
@@ -43,82 +46,106 @@ export default async function ProjectBoardPage(
     due: single(searchParams.due),
   });
 
-  const [context, project, board, meta] = await loadPage(() =>
+  const [context, project, board, meta, sprints] = await loadPage(() =>
     Promise.all([
       requireProjectAccess(projectId),
       getProject(projectId),
       getBoard(projectId, filters),
       getBoardMeta(projectId),
+      listSprints(projectId),
     ])
   );
 
-  const taskCount = board.columns.reduce(
-    (total, column) => total + column.tasks.length,
-    0
-  );
-  const hasTasks = taskCount > 0;
+  const allTasks = board.columns.flatMap((column) => column.tasks);
+  const taskCount = allTasks.length;
   const hasFilters = Object.values(filters).some(Boolean);
 
-  return (
-    <main className="flex flex-1 flex-col gap-6 px-4 py-8">
-      <header className="mx-auto flex w-full max-w-[1920px] flex-wrap items-start gap-3">
-        <div className="min-w-0 flex-1 space-y-1">
-          <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
-            <Link
-              href={`/workspaces/${project.workspaceId}`}
-              className="rounded-sm hover:text-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
-            >
-              Projects
-            </Link>
-          </nav>
-          <div className="flex items-center gap-2">
-            <span
-              aria-hidden
-              className="size-3 shrink-0 rounded-full"
-              style={{ backgroundColor: project.color }}
-            />
-            <h1 className="truncate text-2xl font-semibold tracking-tight">
-              {project.name}
-            </h1>
-          </div>
-          {project.description ? (
-            <p className="text-sm text-muted-foreground">{project.description}</p>
-          ) : null}
-        </div>
-      </header>
+  const activeSprint =
+    sprints.find((sprint) => sprint.status === SprintStatus.ACTIVE) ?? null;
 
-      <div className="mx-auto w-full max-w-[1920px] space-y-4">
-        {board.columns.length === 0 ? (
+  const sprintTasks = activeSprint
+    ? allTasks.filter((task) => task.sprintId === activeSprint.id)
+    : [];
+  const doneColumnIds = new Set(
+    board.columns.filter((column) => column.isDone).map((column) => column.id)
+  );
+
+  const totalPoints = sprintTasks.reduce(
+    (sum, task) => sum + (task.storyPoints ?? 0),
+    0
+  );
+  const completedPoints = sprintTasks
+    .filter((task) => doneColumnIds.has(task.columnId))
+    .reduce((sum, task) => sum + (task.storyPoints ?? 0), 0);
+
+  return (
+    <main className="flex min-w-0 flex-1 flex-col">
+      <div className="border-b border-(--sp-neutral-300) px-4 pt-5 pb-4 lg:px-6">
+        <nav aria-label="Breadcrumb" className="sp-kicker mb-1.5">
+          <Link
+            href={`/workspaces/${project.workspaceId}`}
+            className="rounded-none outline-none hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50"
+          >
+            {project.name}
+          </Link>{" "}
+          / Board
+        </nav>
+
+        {activeSprint ? (
+          <SprintBanner
+            sprint={activeSprint}
+            totalPoints={totalPoints}
+            completedPoints={completedPoints}
+          />
+        ) : (
+          <div className="flex flex-wrap items-end gap-4">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-[32px]">{project.name}</h1>
+              {project.description ? (
+                <p className="mt-1 text-sm text-[color-mix(in_srgb,var(--sp-text)_65%,transparent)]">
+                  {project.description}
+                </p>
+              ) : null}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {board.columns.length === 0 ? (
+        <div className="p-4 lg:p-6">
           <EmptyState
             title="This board has no columns"
             description="Add a column to start organising work."
           />
-        ) : (
-          <>
+        </div>
+      ) : (
+        <>
+          <div className="border-b border-(--sp-neutral-300) px-4 py-3 lg:px-6">
             <BoardFilters
               projectId={projectId}
               members={meta.members}
               labels={meta.labels}
               resultCount={taskCount}
             />
+          </div>
 
-            {!hasTasks && !hasFilters ? (
-              <p className="text-sm text-muted-foreground">
-                This board is empty. Add your first task to a column below.
-              </p>
-            ) : null}
+          {taskCount === 0 && !hasFilters ? (
+            <p className="px-4 pt-4 text-sm text-[color-mix(in_srgb,var(--sp-text)_55%,transparent)] lg:px-6">
+              This board is empty. Add your first issue to a column below.
+            </p>
+          ) : null}
 
-            <BoardView
-              projectId={projectId}
-              columns={board.columns}
-              members={meta.members}
-              canCreateTask={can(context.role, PERMISSIONS.TASK_CREATE)}
-              canComment={can(context.role, PERMISSIONS.COMMENT_CREATE)}
-              currentUserId={context.user.id}
-            />
-          </>
-        )}
-      </div>
+          <BoardView
+            projectId={projectId}
+            columns={board.columns}
+            sprints={sprints}
+            members={meta.members}
+            canCreateTask={can(context.role, PERMISSIONS.TASK_CREATE)}
+            canComment={can(context.role, PERMISSIONS.COMMENT_CREATE)}
+            currentUserId={context.user.id}
+          />
+        </>
+      )}
     </main>
   );
 }

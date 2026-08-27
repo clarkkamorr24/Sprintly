@@ -82,3 +82,12 @@ export class RateLimitError extends AppError {
 export function isAppError(error: unknown): error is AppError {
   return error instanceof AppError;
 }
+
+export class InternalError extends AppError {
+  readonly code = ERROR_CODES.INTERNAL_ERROR;
+  readonly status = 500;
+
+  constructor(message = "Something went wrong. Please try again.") {
+    super(message);
+  }
+}

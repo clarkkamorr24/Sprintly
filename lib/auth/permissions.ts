@@ -19,6 +19,8 @@ export const PERMISSIONS = {
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
 
+const VIEWER_PERMISSIONS: readonly Permission[] = [];
+
 const MEMBER_PERMISSIONS: readonly Permission[] = [
   PERMISSIONS.TASK_CREATE,
   PERMISSIONS.TASK_UPDATE,
@@ -48,6 +50,7 @@ const ROLE_PERMISSIONS: Readonly<Record<WorkspaceRole, readonly Permission[]>> =
   [WorkspaceRole.OWNER]: OWNER_PERMISSIONS,
   [WorkspaceRole.ADMIN]: ADMIN_PERMISSIONS,
   [WorkspaceRole.MEMBER]: MEMBER_PERMISSIONS,
+  [WorkspaceRole.VIEWER]: VIEWER_PERMISSIONS,
 };
 
 export function can(role: WorkspaceRole, permission: Permission): boolean {
@@ -55,9 +58,10 @@ export function can(role: WorkspaceRole, permission: Permission): boolean {
 }
 
 const ROLE_RANK: Readonly<Record<WorkspaceRole, number>> = {
-  [WorkspaceRole.OWNER]: 3,
-  [WorkspaceRole.ADMIN]: 2,
-  [WorkspaceRole.MEMBER]: 1,
+  [WorkspaceRole.OWNER]: 4,
+  [WorkspaceRole.ADMIN]: 3,
+  [WorkspaceRole.MEMBER]: 2,
+  [WorkspaceRole.VIEWER]: 1,
 };
 
 export function hasAtLeastRole(
@@ -72,6 +76,7 @@ export function canModifyTask(
   userId: string,
   task: { readonly createdById: string; readonly assigneeIds: readonly string[] }
 ): boolean {
+  if (role === WorkspaceRole.VIEWER) return false;
   if (hasAtLeastRole(role, WorkspaceRole.ADMIN)) return true;
   return task.createdById === userId || task.assigneeIds.includes(userId);
 }

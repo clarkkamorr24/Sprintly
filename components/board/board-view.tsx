@@ -10,11 +10,13 @@ import { KanbanBoard } from "@/components/board/kanban-board";
 import { TaskDetailDialog } from "@/components/task/task-detail-dialog";
 import { useRealtimeChannel } from "@/hooks/use-realtime-channel";
 import { REALTIME_EVENT, projectChannel } from "@/types/realtime";
-import type { BoardColumnDTO, TaskCardDTO, UserDTO } from "@/types/dto";
+import { assignTaskToSprintAction } from "@/app/actions/sprint-actions";
+import type { BoardColumnDTO, SprintDTO, TaskCardDTO, UserDTO } from "@/types/dto";
 
 interface BoardViewProps {
   readonly projectId: string;
   readonly columns: readonly BoardColumnDTO[];
+  readonly sprints: readonly SprintDTO[];
   readonly members: readonly UserDTO[];
   readonly canCreateTask: boolean;
   readonly canComment: boolean;
@@ -24,6 +26,7 @@ interface BoardViewProps {
 export function BoardView({
   projectId,
   columns,
+  sprints,
   members,
   canCreateTask,
   canComment,
@@ -61,17 +64,33 @@ export function BoardView({
     });
   };
 
+  const handleAssignSprint = (taskId: string, sprintId: string | null) => {
+    startTransition(async () => {
+      const result = await assignTaskToSprintAction({ taskId, sprintId });
+
+      if (!result.success) {
+        toast.error(result.error.message);
+        return;
+      }
+
+      toast.success(sprintId ? "Added to sprint." : "Removed from sprint.");
+      router.refresh();
+    });
+  };
+
   return (
-    <>
+    <div className="flex min-h-0 flex-1 flex-col">
       {/* Keyed by the server's task set so a filter change remounts the board
           with fresh data instead of keeping stale optimistic state. */}
       <KanbanBoard
         key={boardKey}
         initialColumns={columns}
+        sprints={sprints}
         canCreateTask={canCreateTask}
         onOpenTask={(taskId) => setOpenTaskId(taskId)}
         onAddTask={(columnId) => setAddToColumn(columnId)}
         onDeleteTask={handleDelete}
+        onAssignSprint={handleAssignSprint}
       />
 
       <CreateTaskDialog
@@ -92,6 +111,6 @@ export function BoardView({
         }}
         onMutated={() => router.refresh()}
       />
-    </>
+    </div>
   );
 }

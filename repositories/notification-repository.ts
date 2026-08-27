@@ -45,7 +45,6 @@ export function countUnread(recipientId: string) {
   return db.notification.count({ where: { recipientId, readAt: null } });
 }
 
-/** Scoped by recipient so one user can never mutate another's notifications. */
 export function markRead(notificationId: string, recipientId: string) {
   return db.notification.updateMany({
     where: { id: notificationId, recipientId },

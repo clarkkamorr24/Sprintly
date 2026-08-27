@@ -1,24 +1,22 @@
 import { redirect } from "next/navigation";
 
-import { EmptyState } from "@/components/shared/empty-state";
 import { requireUserOrRedirect } from "@/lib/auth/session";
+import { listProjects } from "@/services/project-service";
 import { listWorkspaces } from "@/services/workspace-service";
 
 export default async function HomePage() {
   await requireUserOrRedirect();
 
   const workspaces = await listWorkspaces();
+  const workspace = workspaces[0];
 
-  if (workspaces.length > 0) {
-    redirect(`/workspaces/${workspaces[0].id}`);
+  if (!workspace) redirect("/onboarding");
+
+  const projects = await listProjects({ workspaceId: workspace.id });
+
+  if (projects.length === 0 && workspaces.length === 1) {
+    redirect("/onboarding");
   }
 
-  return (
-    <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-16">
-      <EmptyState
-        title="No workspaces yet"
-        description="Create a workspace from the switcher above to start organising projects and inviting your team."
-      />
-    </main>
-  );
+  redirect(`/workspaces/${workspace.id}`);
 }

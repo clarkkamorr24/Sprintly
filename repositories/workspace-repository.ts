@@ -113,3 +113,49 @@ export function removeMember(workspaceId: string, userId: string) {
     where: { workspaceId_userId: { workspaceId, userId } },
   });
 }
+
+export function deleteWorkspace(workspaceId: string) {
+  return db.workspace.delete({ where: { id: workspaceId } });
+}
+
+export function transferOwnership(input: {
+  workspaceId: string;
+  fromUserId: string;
+  toUserId: string;
+}) {
+  return db.$transaction([
+    db.workspaceMember.update({
+      where: {
+        workspaceId_userId: {
+          workspaceId: input.workspaceId,
+          userId: input.toUserId,
+        },
+      },
+      data: { role: "OWNER" },
+      select: { id: true },
+    }),
+    db.workspaceMember.update({
+      where: {
+        workspaceId_userId: {
+          workspaceId: input.workspaceId,
+          userId: input.fromUserId,
+        },
+      },
+      data: { role: "ADMIN" },
+      select: { id: true },
+    }),
+    db.workspace.update({
+      where: { id: input.workspaceId },
+      data: { createdById: input.toUserId },
+      select: { id: true },
+    }),
+  ]);
+}
+
+export function updateWorkspaceIcon(workspaceId: string, iconColor: string) {
+  return db.workspace.update({
+    where: { id: workspaceId },
+    data: { iconColor },
+    select: { id: true },
+  });
+}

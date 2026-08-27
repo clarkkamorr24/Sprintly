@@ -11,6 +11,7 @@ enum WorkspaceRole {
   OWNER
   ADMIN
   MEMBER
+  VIEWER
 }
 
 enum ProjectStatus {
@@ -25,6 +26,19 @@ enum TaskPriority {
   MEDIUM
   HIGH
   URGENT
+}
+
+enum IssueType {
+  STORY
+  TASK
+  BUG
+  EPIC
+}
+
+enum SprintStatus {
+  PLANNED
+  ACTIVE
+  COMPLETED
 }
 
 enum InvitationStatus {
@@ -100,6 +114,7 @@ model Workspace {
   id          String    @id @default(uuid()) @db.Uuid
   name        String
   slug        String    @unique
+  iconColor   String    @default("#ec3013")
   description String?
   createdById String    @db.Uuid
   createdAt   DateTime  @default(now())
@@ -136,9 +151,11 @@ model Project {
   id          String        @id @default(uuid()) @db.Uuid
   workspaceId String        @db.Uuid
   name        String
+  key         String
   description String?
   color       String        @default("#6366f1")
   status      ProjectStatus @default(PLANNING)
+  issueCounter Int          @default(0)
   createdById String        @db.Uuid
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
@@ -148,8 +165,10 @@ model Project {
   members    ProjectMember[]
   columns    BoardColumn[]
   tasks      Task[]
+  sprints    Sprint[]
   activities ActivityLog[]
 
+  @@unique([workspaceId, key])
   @@index([workspaceId, status])
   @@index([createdById])
 }
@@ -186,17 +205,22 @@ model Task {
   id          String       @id @default(uuid()) @db.Uuid
   projectId   String       @db.Uuid
   columnId    String       @db.Uuid
+  number      Int
   title       String
   description String?
+  type        IssueType    @default(TASK)
   priority    TaskPriority @default(MEDIUM)
+  storyPoints Int?
   position    Int
   dueDate     DateTime?
+  sprintId    String?      @db.Uuid
   createdById String       @db.Uuid
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   completedAt DateTime?
 
   project     Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sprint      Sprint?        @relation(fields: [sprintId], references: [id], onDelete: SetNull)
   column      BoardColumn    @relation(fields: [columnId], references: [id], onDelete: Cascade)
   createdBy   User           @relation("TaskCreator", fields: [createdById], references: [id], onDelete: Restrict)
   assignees   TaskAssignee[]
@@ -206,10 +230,31 @@ model Task {
   attachments Attachment[]
   activities  ActivityLog[]
 
+  @@unique([projectId, number])
   @@index([projectId, columnId, position])
   @@index([columnId, position])
   @@index([dueDate])
   @@index([createdById])
+  @@index([sprintId])
+}
+
+model Sprint {
+  id        String       @id @default(uuid()) @db.Uuid
+  projectId String       @db.Uuid
+  name      String
+  goal      String?
+  status    SprintStatus @default(PLANNED)
+  startDate DateTime
+  endDate   DateTime
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks   Task[]
+
+  @@unique([projectId, name])
+  @@index([projectId, status])
+  @@index([projectId, startDate])
 }
 
 model TaskAssignee {

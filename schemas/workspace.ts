@@ -25,20 +25,21 @@ export const updateWorkspaceSchema = z.object({
   description: z.string().trim().max(280).optional().or(z.literal("")),
 });
 
+const assignableRoleSchema = z.enum(
+  [WorkspaceRole.ADMIN, WorkspaceRole.MEMBER, WorkspaceRole.VIEWER],
+  { error: "Choose a valid role." }
+);
+
 export const inviteMemberSchema = z.object({
   workspaceId: uuidSchema,
   email: z.email({ error: "Enter a valid email address." }).trim().toLowerCase(),
-  role: z.enum([WorkspaceRole.ADMIN, WorkspaceRole.MEMBER], {
-    error: "Choose a valid role.",
-  }),
+  role: assignableRoleSchema,
 });
 
 export const updateMemberRoleSchema = z.object({
   workspaceId: uuidSchema,
   userId: uuidSchema,
-  role: z.enum([WorkspaceRole.ADMIN, WorkspaceRole.MEMBER], {
-    error: "Choose a valid role.",
-  }),
+  role: assignableRoleSchema,
 });
 
 export const removeMemberSchema = z.object({
@@ -51,3 +52,22 @@ export type UpdateWorkspaceInput = z.infer<typeof updateWorkspaceSchema>;
 export type InviteMemberInput = z.infer<typeof inviteMemberSchema>;
 export type UpdateMemberRoleInput = z.infer<typeof updateMemberRoleSchema>;
 export type RemoveMemberInput = z.infer<typeof removeMemberSchema>;
+
+export const revokeInvitationSchema = z.object({
+  invitationId: uuidSchema,
+});
+
+export type RevokeInvitationInput = z.infer<typeof revokeInvitationSchema>;
+
+export const deleteWorkspaceSchema = z.object({
+  workspaceId: uuidSchema,
+  confirmName: z.string().trim().min(1),
+});
+
+export const transferOwnershipSchema = z.object({
+  workspaceId: uuidSchema,
+  toUserId: uuidSchema,
+});
+
+export type DeleteWorkspaceInput = z.infer<typeof deleteWorkspaceSchema>;
+export type TransferOwnershipInput = z.infer<typeof transferOwnershipSchema>;

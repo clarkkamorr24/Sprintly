@@ -71,7 +71,6 @@ export async function moveTaskAction(
     const data = parseInput(moveTaskSchema, input);
     const { projectId, actorId } = await boardService.moveTask(data);
 
-    // Broadcast after the response so realtime never delays the mutation.
     after(() => broadcastBoardChanged({ projectId, actorId }));
 
     return null;

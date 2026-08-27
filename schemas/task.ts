@@ -1,6 +1,6 @@
 import * as z from "zod";
 
-import { TaskPriority } from "@/lib/generated/prisma/enums";
+import { IssueType, TaskPriority } from "@/lib/generated/prisma/enums";
 import { uuidSchema } from "@/schemas/common";
 
 export const taskTitleSchema = z
@@ -13,6 +13,18 @@ export const taskPrioritySchema = z.enum(TaskPriority, {
   error: "Choose a valid priority.",
 });
 
+export const issueTypeSchema = z.enum(IssueType, {
+  error: "Choose a valid issue type.",
+});
+
+const storyPointsSchema = z.coerce
+  .number()
+  .int()
+  .min(0)
+  .max(100)
+  .nullable()
+  .optional();
+
 const dueDateSchema = z
   .union([z.iso.datetime({ offset: true }), z.iso.date(), z.literal(""), z.null()])
   .optional();
@@ -22,7 +34,9 @@ export const createTaskSchema = z.object({
   columnId: uuidSchema,
   title: taskTitleSchema,
   description: z.string().trim().max(5000).optional().or(z.literal("")),
+  type: issueTypeSchema.default(IssueType.TASK),
   priority: taskPrioritySchema.default(TaskPriority.MEDIUM),
+  storyPoints: storyPointsSchema,
   assigneeIds: z.array(uuidSchema).max(10).default([]),
   labelIds: z.array(uuidSchema).max(20).default([]),
   dueDate: dueDateSchema,
@@ -32,7 +46,9 @@ export const updateTaskSchema = z.object({
   taskId: uuidSchema,
   title: taskTitleSchema,
   description: z.string().trim().max(5000).optional().or(z.literal("")),
+  type: issueTypeSchema,
   priority: taskPrioritySchema,
+  storyPoints: storyPointsSchema,
   assigneeIds: z.array(uuidSchema).max(10),
   labelIds: z.array(uuidSchema).max(20),
   dueDate: dueDateSchema,

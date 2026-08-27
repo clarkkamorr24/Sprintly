@@ -8,9 +8,13 @@ import {
   Menu01Icon,
 } from "@hugeicons/core-free-icons";
 
-import { UserAvatar } from "@/components/shared/user-avatar";
-import { Badge } from "@/components/ui/badge";
-import { PRIORITY_LABEL, PRIORITY_STYLE } from "@/lib/task-display";
+import { InitialsTile } from "@/components/shared/initials-tile";
+import { PriorityTag } from "@/components/shared/priority-tag";
+import {
+  ISSUE_TYPE_COLOR,
+  ISSUE_TYPE_LABEL,
+  ISSUE_TYPE_LETTER,
+} from "@/lib/issue-display";
 import { cn, formatDueDate, isOverdue } from "@/lib/utils";
 import type { TaskCardDTO } from "@/types/dto";
 
@@ -34,42 +38,51 @@ export function TaskCard({
   return (
     <article
       className={cn(
-        "group/task relative rounded-xl border border-border bg-card p-3 shadow-xs transition-colors",
+        "sp-card-hover group/task relative border border-(--sp-neutral-300) bg-(--sp-neutral-100) p-2.5 shadow-xs transition-colors",
         isDragging && "opacity-50"
       )}
     >
-      <div className="flex items-start gap-2">
-        <button
-          type="button"
-          aria-label={`Drag ${task.title}`}
-          className="mt-0.5 cursor-grab touch-none rounded-sm p-0.5 text-muted-foreground/60 transition-colors outline-none hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 active:cursor-grabbing"
-          {...dragHandleProps}
+      <div className="mb-[7px] flex items-center gap-1.5">
+        <span
+          aria-label={ISSUE_TYPE_LABEL[task.type]}
+          className="flex size-[15px] items-center justify-center border text-[9px] font-extrabold"
+          style={{
+            borderColor: ISSUE_TYPE_COLOR[task.type],
+            color: ISSUE_TYPE_COLOR[task.type],
+          }}
         >
-          <HugeiconsIcon icon={Menu01Icon} strokeWidth={2} className="size-4" />
-        </button>
+          {ISSUE_TYPE_LETTER[task.type]}
+        </span>
+        <span className="sp-mono-key text-[11px] text-[color-mix(in_srgb,var(--sp-text)_60%,transparent)]">
+          {task.key}
+        </span>
 
-        <button
-          type="button"
-          onClick={() => onOpen(task.id)}
-          className="flex-1 rounded-sm text-left text-sm font-medium outline-none after:absolute after:inset-0 focus-visible:ring-[3px] focus-visible:ring-ring/50"
-        >
-          {task.title}
-        </button>
-
-        {menu ? <div className="relative z-10 shrink-0">{menu}</div> : null}
+        <div className="relative z-10 ml-auto flex items-center gap-0.5">
+          {menu}
+          <button
+            type="button"
+            aria-label={`Drag ${task.title}`}
+            className="cursor-grab touch-none p-0.5 text-[color-mix(in_srgb,var(--sp-text)_35%,transparent)] outline-none transition-colors hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 active:cursor-grabbing"
+            {...dragHandleProps}
+          >
+            <HugeiconsIcon icon={Menu01Icon} strokeWidth={2.5} className="size-3" />
+          </button>
+        </div>
       </div>
 
+      <button
+        type="button"
+        onClick={() => onOpen(task.id)}
+        className="mb-2 block w-full text-left text-[13.5px] font-medium leading-[1.35] text-pretty outline-none after:absolute after:inset-0 focus-visible:ring-[3px] focus-visible:ring-ring/50"
+      >
+        {task.title}
+      </button>
+
       {task.labels.length > 0 ? (
-        <ul className="mt-2 flex flex-wrap gap-1">
+        <ul className="mb-2 flex flex-wrap gap-1">
           {task.labels.map((label) => (
             <li key={label.id}>
-              <span
-                className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
-                style={{
-                  backgroundColor: `${label.color}1a`,
-                  color: label.color,
-                }}
-              >
+              <span className="inline-flex border border-(--sp-neutral-300) bg-(--sp-neutral-100) px-2 py-[3px] text-[11px] text-(--sp-neutral-800)">
                 {label.name}
               </span>
             </li>
@@ -77,49 +90,53 @@ export function TaskCard({
         </ul>
       ) : null}
 
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        <Badge variant="outline" className={cn("gap-1", PRIORITY_STYLE[task.priority])}>
-          {PRIORITY_LABEL[task.priority]}
-        </Badge>
+      <div className="flex items-center gap-2 border-t border-(--sp-neutral-200) pt-[7px]">
+        <PriorityTag priority={task.priority} />
+
+        {task.storyPoints !== null ? (
+          <span className="text-[11px] font-extrabold">{task.storyPoints}</span>
+        ) : null}
 
         {task.dueDate ? (
           <span
             className={cn(
-              "inline-flex items-center gap-1 text-xs",
-              overdue ? "text-destructive" : "text-muted-foreground"
+              "inline-flex items-center gap-1 text-[11px]",
+              overdue
+                ? "text-(--sp-accent-700)"
+                : "text-[color-mix(in_srgb,var(--sp-text)_55%,transparent)]"
             )}
           >
-            <HugeiconsIcon icon={Calendar01Icon} strokeWidth={2} className="size-3.5" />
+            <HugeiconsIcon icon={Calendar01Icon} strokeWidth={2} className="size-3" />
             {formatDueDate(task.dueDate)}
             {overdue ? <span className="sr-only">(overdue)</span> : null}
           </span>
         ) : null}
 
         {task.subtasks.total > 0 ? (
-          <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+          <span className="inline-flex items-center gap-1 text-[11px] text-[color-mix(in_srgb,var(--sp-text)_55%,transparent)]">
             <HugeiconsIcon
               icon={CheckmarkSquare02Icon}
               strokeWidth={2}
-              className="size-3.5"
+              className="size-3"
             />
             {task.subtasks.completed}/{task.subtasks.total}
           </span>
         ) : null}
 
         {task.commentCount > 0 ? (
-          <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-            <HugeiconsIcon icon={Comment01Icon} strokeWidth={2} className="size-3.5" />
+          <span className="inline-flex items-center gap-1 text-[11px] text-[color-mix(in_srgb,var(--sp-text)_55%,transparent)]">
+            <HugeiconsIcon icon={Comment01Icon} strokeWidth={2} className="size-3" />
             {task.commentCount}
             <span className="sr-only">comments</span>
           </span>
         ) : null}
 
         {task.assignees.length > 0 ? (
-          <div className="ml-auto flex -space-x-1.5">
+          <span className="ml-auto flex gap-0.5">
             {task.assignees.slice(0, 3).map((user) => (
-              <UserAvatar key={user.id} user={user} size="sm" />
+              <InitialsTile key={user.id} user={user} size="xs" />
             ))}
-          </div>
+          </span>
         ) : null}
       </div>
     </article>

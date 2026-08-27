@@ -7,6 +7,8 @@ import { parseInput } from "@/lib/validation";
 import * as workspaceService from "@/services/workspace-service";
 import {
   createWorkspaceSchema,
+  deleteWorkspaceSchema,
+  transferOwnershipSchema,
   removeMemberSchema,
   updateMemberRoleSchema,
   updateWorkspaceSchema,
@@ -58,6 +60,30 @@ export async function removeMemberAction(
     await workspaceService.removeMember(data);
 
     revalidatePath(`/workspaces/${data.workspaceId}/members`);
+    return null;
+  });
+}
+
+export async function deleteWorkspaceAction(
+  input: unknown
+): Promise<ApiResponse<null>> {
+  return handleAction("deleteWorkspaceAction", async () => {
+    const data = parseInput(deleteWorkspaceSchema, input);
+    await workspaceService.deleteWorkspace(data);
+
+    revalidatePath("/", "layout");
+    return null;
+  });
+}
+
+export async function transferOwnershipAction(
+  input: unknown
+): Promise<ApiResponse<null>> {
+  return handleAction("transferOwnershipAction", async () => {
+    const data = parseInput(transferOwnershipSchema, input);
+    await workspaceService.transferOwnership(data);
+
+    revalidatePath(`/workspaces/${data.workspaceId}/settings`);
     return null;
   });
 }

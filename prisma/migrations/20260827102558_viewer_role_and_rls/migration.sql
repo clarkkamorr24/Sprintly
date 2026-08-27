@@ -1,0 +1,3 @@
+ALTER TYPE "WorkspaceRole" ADD VALUE 'VIEWER';
+
+ALTER TABLE "Workspace" ADD COLUMN "iconColor" TEXT NOT NULL DEFAULT '#ec3013';

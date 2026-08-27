@@ -1,14 +1,18 @@
 import "server-only";
 
 import { db } from "@/lib/db";
-import type { TaskPriority } from "@/lib/generated/prisma/enums";
+import type { IssueType, TaskPriority } from "@/lib/generated/prisma/enums";
 import { userSelect } from "@/repositories/workspace-repository";
 
 const taskDetailSelect = {
   id: true,
   projectId: true,
   columnId: true,
+  number: true,
+  type: true,
+  storyPoints: true,
   title: true,
+  project: { select: { key: true } },
   description: true,
   priority: true,
   position: true,
@@ -48,31 +52,44 @@ export function createTask(input: {
   columnId: string;
   title: string;
   description: string | null;
+  type: IssueType;
   priority: TaskPriority;
+  storyPoints: number | null;
   position: number;
   dueDate: Date | null;
   createdById: string;
   assigneeIds: readonly string[];
   labelIds: readonly string[];
 }) {
-  return db.task.create({
-    data: {
-      projectId: input.projectId,
-      columnId: input.columnId,
-      title: input.title,
-      description: input.description,
-      priority: input.priority,
-      position: input.position,
-      dueDate: input.dueDate,
-      createdById: input.createdById,
-      assignees: {
-        create: input.assigneeIds.map((userId) => ({ userId })),
+  return db.$transaction(async (tx) => {
+    const project = await tx.project.update({
+      where: { id: input.projectId },
+      data: { issueCounter: { increment: 1 } },
+      select: { issueCounter: true },
+    });
+
+    return tx.task.create({
+      data: {
+        number: project.issueCounter,
+        type: input.type,
+        storyPoints: input.storyPoints,
+        projectId: input.projectId,
+        columnId: input.columnId,
+        title: input.title,
+        description: input.description,
+        priority: input.priority,
+        position: input.position,
+        dueDate: input.dueDate,
+        createdById: input.createdById,
+        assignees: {
+          create: input.assigneeIds.map((userId) => ({ userId })),
+        },
+        labels: {
+          create: input.labelIds.map((labelId) => ({ labelId })),
+        },
       },
-      labels: {
-        create: input.labelIds.map((labelId) => ({ labelId })),
-      },
-    },
-    select: taskDetailSelect,
+      select: taskDetailSelect,
+    });
   });
 }
 
@@ -80,7 +97,9 @@ export function updateTask(input: {
   taskId: string;
   title: string;
   description: string | null;
+  type: IssueType;
   priority: TaskPriority;
+  storyPoints: number | null;
   dueDate: Date | null;
   assigneeIds: readonly string[];
   labelIds: readonly string[];
@@ -114,7 +133,9 @@ export function updateTask(input: {
       data: {
         title: input.title,
         description: input.description,
+        type: input.type,
         priority: input.priority,
+        storyPoints: input.storyPoints,
         dueDate: input.dueDate,
       },
       select: taskDetailSelect,

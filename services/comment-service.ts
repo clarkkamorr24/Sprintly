@@ -109,10 +109,6 @@ type CommentTask = NonNullable<
   Awaited<ReturnType<typeof taskRepo.findTaskOwnership>>
 >;
 
-/**
- * Mentioned users are resolved against project membership, so a mention can
- * never notify someone outside the project.
- */
 async function notifyCommentRecipients(input: {
   body: string;
   task: CommentTask;

@@ -1,58 +1,95 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
 import { useState } from "react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Add01Icon, Menu01Icon, Search01Icon } from "@hugeicons/core-free-icons";
 
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import { UserMenu } from "@/components/shared/user-menu";
 import { CreateWorkspaceDialog } from "@/components/workspace/create-workspace-dialog";
-import { WorkspaceSwitcher } from "@/components/workspace/workspace-switcher";
+import { Button } from "@/components/ui/button";
+import { initialsOf } from "@/lib/initials";
 import type { SessionUser } from "@/types/auth";
 import type { WorkspaceDTO } from "@/types/dto";
 
 interface AppHeaderProps {
   readonly user: SessionUser;
   readonly workspaces: readonly WorkspaceDTO[];
+  readonly activeWorkspaceId: string;
   readonly unreadCount: number;
 }
 
-export function AppHeader({ user, workspaces, unreadCount }: AppHeaderProps) {
+export function AppHeader({
+  user,
+  workspaces,
+  activeWorkspaceId,
+  unreadCount,
+}: AppHeaderProps) {
   const [isCreateOpen, setCreateOpen] = useState(false);
-  const params = useParams<{ workspaceId?: string }>();
-
-  const activeWorkspaceId = params.workspaceId ?? workspaces[0]?.id ?? "";
+  const active = workspaces.find((w) => w.id === activeWorkspaceId);
 
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/80">
-        <div className="flex h-14 items-center gap-3 px-4">
-          <Link
-            href="/"
-            className="font-semibold tracking-tight rounded-sm focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
-          >
-            Sprintly
-          </Link>
+      <header className="flex h-14 shrink-0 items-center gap-4 border-b border-(--sp-neutral-300) px-4 lg:px-6">
+        <Link
+          href="/"
+          className="flex items-center gap-2 outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 lg:hidden"
+        >
+          <span aria-hidden className="block size-5 bg-(--sp-accent)" />
+          <span className="text-[16px] font-extrabold tracking-[-0.02em]">Sprintly</span>
+        </Link>
 
-          <span aria-hidden className="text-muted-foreground">
-            /
+        <div className="hidden max-w-[420px] flex-1 items-center gap-2 border border-(--sp-neutral-300) bg-(--sp-neutral-100) px-2.5 py-1.5 md:flex">
+          <HugeiconsIcon
+            icon={Search01Icon}
+            strokeWidth={2}
+            className="size-[15px] opacity-55"
+          />
+          <span className="flex-1 text-[13px] text-[color-mix(in_srgb,var(--sp-text)_62%,transparent)]">
+            Search issues, projects, people
           </span>
+          <span className="border border-(--sp-neutral-300) px-[5px] py-px text-[11px] font-extrabold">
+            ⌘K
+          </span>
+        </div>
 
-          <WorkspaceSwitcher
-            workspaces={workspaces}
-            activeWorkspaceId={activeWorkspaceId}
-            onCreate={() => setCreateOpen(true)}
+        <div className="ml-auto flex items-center gap-2">
+          <Button
+            size="sm"
+            className="gap-1.5"
+            onClick={() => setCreateOpen(true)}
+          >
+            <HugeiconsIcon icon={Add01Icon} strokeWidth={2.5} className="size-[15px]" />
+            <span className="hidden sm:inline">Create</span>
+          </Button>
+
+          <NotificationBell
+            initialUnreadCount={unreadCount}
+            currentUserId={user.id}
           />
 
-          <div className="ml-auto flex items-center gap-1">
-            <NotificationBell
-              initialUnreadCount={unreadCount}
-              currentUserId={user.id}
-            />
+          <div className="flex items-center gap-2.5 border-l border-(--sp-neutral-300) pl-3.5">
+            <span className="hidden leading-[1.15] sm:block">
+              <span className="block text-[12px] font-semibold">{user.name}</span>
+              <span className="block text-[10px] text-[color-mix(in_srgb,var(--sp-text)_55%,transparent)]">
+                {user.email}
+              </span>
+            </span>
             <UserMenu user={user} />
           </div>
         </div>
       </header>
+
+      <div className="flex items-center gap-2 border-b border-(--sp-neutral-300) bg-(--sp-neutral-100) px-4 py-2 lg:hidden">
+        <HugeiconsIcon icon={Menu01Icon} strokeWidth={2} className="size-4 opacity-55" />
+        <span className="flex size-[22px] items-center justify-center bg-(--sp-neutral-800) text-[10px] font-extrabold text-(--sp-bg)">
+          {initialsOf(active?.name ?? "?")}
+        </span>
+        <span className="truncate text-[12px] font-semibold">
+          {active?.name ?? "No workspace"}
+        </span>
+      </div>
 
       <CreateWorkspaceDialog open={isCreateOpen} onOpenChange={setCreateOpen} />
     </>

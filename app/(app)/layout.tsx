@@ -1,5 +1,7 @@
 import { AppHeader } from "@/components/shared/app-header";
+import { AppSidebar } from "@/components/shared/app-sidebar";
 import { requireUserOrRedirect } from "@/lib/auth/session";
+import { getActiveProject } from "@/services/project-service";
 import { getUnreadCount } from "@/services/notification-service";
 import { listWorkspaces } from "@/services/workspace-service";
 
@@ -13,14 +15,28 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
     getUnreadCount(),
   ]);
 
+  const activeWorkspaceId = workspaces[0]?.id ?? "";
+  const activeProject = activeWorkspaceId
+    ? await getActiveProject(activeWorkspaceId)
+    : null;
+
   return (
-    <div className="flex min-h-full flex-1 flex-col">
-      <AppHeader
-        user={user}
+    <div className="flex min-h-full flex-1">
+      <AppSidebar
         workspaces={workspaces}
-        unreadCount={unreadCount}
+        activeWorkspaceId={activeWorkspaceId}
+        activeProject={activeProject}
       />
-      {children}
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        <AppHeader
+          user={user}
+          workspaces={workspaces}
+          activeWorkspaceId={activeWorkspaceId}
+          unreadCount={unreadCount}
+        />
+        {children}
+      </div>
     </div>
   );
 }

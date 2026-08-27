@@ -6,11 +6,18 @@ import {
   requireWorkspacePermission,
 } from "@/lib/auth/guards";
 import { hasAtLeastRole, PERMISSIONS } from "@/lib/auth/permissions";
-import { ConflictError, ForbiddenError, NotFoundError } from "@/lib/errors";
+import {
+  ConflictError,
+  ForbiddenError,
+  NotFoundError,
+  ValidationError,
+} from "@/lib/errors";
 import { WorkspaceRole } from "@/lib/generated/prisma/enums";
 import * as repo from "@/repositories/workspace-repository";
 import type {
   CreateWorkspaceInput,
+  DeleteWorkspaceInput,
+  TransferOwnershipInput,
   RemoveMemberInput,
   UpdateMemberRoleInput,
   UpdateWorkspaceInput,
@@ -178,4 +185,54 @@ export async function removeMember(input: RemoveMemberInput): Promise<void> {
   }
 
   await repo.removeMember(input.workspaceId, input.userId);
+}
+
+export async function deleteWorkspace(
+  input: DeleteWorkspaceInput
+): Promise<void> {
+  const context = await requireWorkspacePermission(
+    input.workspaceId,
+    PERMISSIONS.WORKSPACE_DELETE
+  );
+
+  const workspace = await repo.findWorkspaceById(input.workspaceId);
+  if (!workspace) throw new NotFoundError("Workspace not found.");
+
+  if (workspace.name !== input.confirmName) {
+    throw new ValidationError("The workspace name does not match.", {
+      confirmName: ["Type the workspace name exactly to confirm."],
+    });
+  }
+
+  const owned = await repo.findWorkspacesForUser(context.user.id);
+  if (owned.length <= 1) {
+    throw new ConflictError(
+      "You cannot delete your only workspace. Create another one first."
+    );
+  }
+
+  await repo.deleteWorkspace(input.workspaceId);
+}
+
+export async function transferOwnership(
+  input: TransferOwnershipInput
+): Promise<void> {
+  const context = await requireWorkspaceAccess(input.workspaceId);
+
+  if (context.role !== WorkspaceRole.OWNER) {
+    throw new ForbiddenError("Only the workspace owner can transfer ownership.");
+  }
+
+  if (input.toUserId === context.user.id) {
+    throw new ConflictError("You already own this workspace.");
+  }
+
+  const target = await repo.findMembership(input.workspaceId, input.toUserId);
+  if (!target) throw new NotFoundError("That member is not in this workspace.");
+
+  await repo.transferOwnership({
+    workspaceId: input.workspaceId,
+    fromUserId: context.user.id,
+    toUserId: input.toUserId,
+  });
 }

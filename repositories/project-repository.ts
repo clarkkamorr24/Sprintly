@@ -10,6 +10,7 @@ const projectSelect = {
   id: true,
   workspaceId: true,
   name: true,
+  key: true,
   description: true,
   color: true,
   status: true,
@@ -41,6 +42,14 @@ export function findProjectsForWorkspace(filters: {
   });
 }
 
+export function findFirstProject(workspaceId: string) {
+  return db.project.findFirst({
+    where: { workspaceId, status: { not: "ARCHIVED" } },
+    select: { id: true, name: true, key: true },
+    orderBy: [{ status: "asc" }, { updatedAt: "desc" }],
+  });
+}
+
 export function findProjectById(projectId: string) {
   return db.project.findUnique({
     where: { id: projectId },
@@ -48,8 +57,35 @@ export function findProjectById(projectId: string) {
   });
 }
 
+export async function nextProjectKey(
+  workspaceId: string,
+  name: string
+): Promise<string> {
+  const base =
+    name.replace(/[^A-Za-z]/g, "").slice(0, 3).toUpperCase() || "PRJ";
+
+  const taken = new Set(
+    (
+      await db.project.findMany({
+        where: { workspaceId, key: { startsWith: base } },
+        select: { key: true },
+      })
+    ).map((p) => p.key)
+  );
+
+  if (!taken.has(base)) return base;
+
+  for (let suffix = 2; suffix < 100; suffix += 1) {
+    const candidate = `${base}${suffix}`;
+    if (!taken.has(candidate)) return candidate;
+  }
+
+  return `${base}${Date.now().toString().slice(-4)}`;
+}
+
 export function createProjectWithBoard(input: {
   workspaceId: string;
+  key: string;
   name: string;
   description: string | null;
   color: string;
@@ -60,6 +96,7 @@ export function createProjectWithBoard(input: {
   return db.project.create({
     data: {
       workspaceId: input.workspaceId,
+      key: input.key,
       name: input.name,
       description: input.description,
       color: input.color,
@@ -108,11 +145,6 @@ export function countProjectsByStatus(workspaceId: string) {
   });
 }
 
-/**
- * Resolves @mention handles to project members. A handle is the lowercased
- * first word of a user's name; matching is scoped to the project so a mention
- * can never reach outside it.
- */
 export async function findProjectMembersByHandle(
   projectId: string,
   handles: readonly string[]

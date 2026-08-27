@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { moveTaskAction } from "@/app/actions/board-actions";
@@ -45,7 +45,7 @@ function applyMove(
     if (column.id !== to.columnId) return column;
 
     const next = [...column.tasks];
-    const index = Math.min(to.index, next.length);
+    const index = Math.min(Math.max(to.index, 0), next.length);
     next.splice(index, 0, { ...task, columnId: to.columnId });
 
     return { ...column, tasks: next };
@@ -56,21 +56,20 @@ export function useBoard(initialColumns: readonly BoardColumnDTO[]) {
   const [columns, setColumns] = useState(initialColumns);
   const [isSaving, startTransition] = useTransition();
 
-  const syncFromServer = useCallback((next: readonly BoardColumnDTO[]) => {
+  const current = useRef(columns);
+  const beforeDrag = useRef<readonly BoardColumnDTO[] | null>(null);
+
+  useEffect(() => {
+    current.current = columns;
+  }, [columns]);
+
+  const commit = useCallback((next: readonly BoardColumnDTO[]) => {
+    current.current = next;
     setColumns(next);
   }, []);
 
-  const moveTask = useCallback(
-    (taskId: string, to: TaskLocation) => {
-      const previous = columns;
-      const from = locate(columns, taskId);
-
-      if (!from) return;
-      if (from.columnId === to.columnId && from.index === to.index) return;
-
-      const optimistic = applyMove(columns, taskId, to);
-      setColumns(optimistic);
-
+  const persist = useCallback(
+    (taskId: string, to: TaskLocation, rollbackTo: readonly BoardColumnDTO[]) => {
       startTransition(async () => {
         const result = await moveTaskAction({
           taskId,
@@ -79,12 +78,67 @@ export function useBoard(initialColumns: readonly BoardColumnDTO[]) {
         });
 
         if (!result.success) {
-          setColumns(previous);
+          commit(rollbackTo);
           toast.error(result.error.message);
         }
       });
     },
-    [columns]
+    [commit]
+  );
+
+  const beginDrag = useCallback(() => {
+    beforeDrag.current = current.current;
+  }, []);
+
+  const previewMove = useCallback(
+    (taskId: string, to: TaskLocation) => {
+      const from = locate(current.current, taskId);
+      if (!from) return;
+      if (from.columnId === to.columnId && from.index === to.index) return;
+
+      commit(applyMove(current.current, taskId, to));
+    },
+    [commit]
+  );
+
+  const cancelDrag = useCallback(() => {
+    if (beforeDrag.current) commit(beforeDrag.current);
+    beforeDrag.current = null;
+  }, [commit]);
+
+  const commitMove = useCallback(
+    (taskId: string) => {
+      const rollbackTo = beforeDrag.current;
+      beforeDrag.current = null;
+
+      const destination = locate(current.current, taskId);
+      if (!destination || !rollbackTo) return;
+
+      const origin = locate(rollbackTo, taskId);
+      const unchanged =
+        origin &&
+        origin.columnId === destination.columnId &&
+        origin.index === destination.index;
+
+      if (unchanged) return;
+
+      persist(taskId, destination, rollbackTo);
+    },
+    [persist]
+  );
+
+  const moveTask = useCallback(
+    (taskId: string, to: TaskLocation) => {
+      const previous = current.current;
+      const from = locate(previous, taskId);
+
+      if (!from) return;
+      if (from.columnId === to.columnId && from.index === to.index) return;
+
+      commit(applyMove(previous, taskId, to));
+      persist(taskId, to, previous);
+    },
+    [commit, persist]
   );
 
   const findTask = useCallback(
@@ -98,5 +152,15 @@ export function useBoard(initialColumns: readonly BoardColumnDTO[]) {
     [columns]
   );
 
-  return { columns, moveTask, findTask, locate: (id: string) => locate(columns, id), isSaving, syncFromServer };
+  return {
+    columns,
+    beginDrag,
+    previewMove,
+    commitMove,
+    cancelDrag,
+    moveTask,
+    findTask,
+    locate: (id: string) => locate(columns, id),
+    isSaving,
+  };
 }

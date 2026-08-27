@@ -13,12 +13,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { BoardColumnDTO, TaskCardDTO } from "@/types/dto";
+import { SprintStatus } from "@/lib/generated/prisma/enums";
+import type { BoardColumnDTO, SprintDTO, TaskCardDTO } from "@/types/dto";
 
 interface TaskMenuProps {
   readonly task: TaskCardDTO;
   readonly columns: readonly BoardColumnDTO[];
+  readonly sprints: readonly SprintDTO[];
   readonly onMove: (columnId: string) => void;
+  readonly onAssignSprint: (sprintId: string | null) => void;
   readonly onOpen: () => void;
   readonly onDelete?: () => void;
 }
@@ -26,11 +29,16 @@ interface TaskMenuProps {
 export function TaskMenu({
   task,
   columns,
+  sprints,
   onMove,
+  onAssignSprint,
   onOpen,
   onDelete,
 }: TaskMenuProps) {
   const targets = columns.filter((column) => column.id !== task.columnId);
+  const openSprints = sprints.filter(
+    (sprint) => sprint.status !== SprintStatus.COMPLETED
+  );
 
   return (
     <DropdownMenu>
@@ -64,6 +72,30 @@ export function TaskMenu({
                   {column.name}
                 </DropdownMenuItem>
               ))}
+            </DropdownMenuGroup>
+          </>
+        ) : null}
+
+        {openSprints.length > 0 ? (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>Sprint</DropdownMenuLabel>
+              {task.sprintId ? (
+                <DropdownMenuItem onClick={() => onAssignSprint(null)}>
+                  Remove from sprint
+                </DropdownMenuItem>
+              ) : null}
+              {openSprints
+                .filter((sprint) => sprint.id !== task.sprintId)
+                .map((sprint) => (
+                  <DropdownMenuItem
+                    key={sprint.id}
+                    onClick={() => onAssignSprint(sprint.id)}
+                  >
+                    {sprint.name}
+                  </DropdownMenuItem>
+                ))}
             </DropdownMenuGroup>
           </>
         ) : null}
