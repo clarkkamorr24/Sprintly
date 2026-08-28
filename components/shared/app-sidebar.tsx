@@ -6,6 +6,8 @@ import { useState } from "react";
 
 import { CreateWorkspaceDialog } from "@/components/workspace/create-workspace-dialog";
 import { WorkspaceSwitcher } from "@/components/workspace/workspace-switcher";
+import { useMobileNav } from "@/components/shared/mobile-nav-context";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import type { WorkspaceDTO } from "@/types/dto";
 
@@ -136,10 +138,19 @@ export function AppSidebar({
   activeProject,
 }: AppSidebarProps) {
   const pathname = usePathname();
+  const { isOpen: isMobileOpen, setOpen: setMobileOpen } = useMobileNav();
   const [isCreateOpen, setCreateOpen] = useState(false);
 
   const routeSlug = /^\/workspaces\/([^/]+)/.exec(pathname)?.[1];
   const currentSlug = routeSlug ?? activeWorkspaceSlug;
+
+  const currentWorkspace =
+    workspaces.find((w) => w.slug === currentSlug) ??
+    workspaces.find((w) => w.id === activeWorkspaceId);
+
+  const hasProjects = currentWorkspace
+    ? currentWorkspace.projectCount > 0
+    : activeProject !== null;
 
   const hrefFor = (segment: string) =>
     segment ? `/workspaces/${currentSlug}/${segment}` : `/workspaces/${currentSlug}`;
@@ -165,37 +176,61 @@ export function AppSidebar({
       </Link>
     ));
 
+  const brand = (
+    <div className="border-b border-(--sp-neutral-300) px-4 py-[14px]">
+      <Link
+        href="/"
+        className="flex items-center gap-2 outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+      >
+        <span aria-hidden className="block size-5 bg-(--sp-accent)" />
+        <span className="text-[18px] font-extrabold tracking-[-0.02em]">Sprintly</span>
+      </Link>
+    </div>
+  );
+
+  const nav = currentSlug ? (
+    <nav className="flex flex-col gap-px p-2">
+      <div className="sp-kicker px-2.5 pt-1.5 pb-1 text-[10px] tracking-[0.1em]">
+        Workspace
+      </div>
+      {renderNav(WORKSPACE_NAV)}
+
+      {hasProjects ? (
+        <>
+          <div className="sp-kicker mt-2 px-2.5 pt-1.5 pb-1 text-[10px] tracking-[0.1em]">
+            Work
+          </div>
+          {renderNav(WORK_NAV)}
+        </>
+      ) : null}
+    </nav>
+  ) : null;
+
+  const switcher = (
+    <WorkspaceSwitcher
+      workspaces={workspaces}
+      activeWorkspaceId={activeWorkspaceId}
+      activeProject={activeProject}
+      onCreate={() => setCreateOpen(true)}
+    />
+  );
+
   return (
     <>
       <aside className="hidden w-[236px] shrink-0 flex-col border-r border-(--sp-neutral-300) bg-(--sp-neutral-100) lg:flex">
-        <div className="border-b border-(--sp-neutral-300) px-4 py-[14px]">
-          <Link href="/" className="flex items-center gap-2 outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">
-            <span aria-hidden className="block size-5 bg-(--sp-accent)" />
-            <span className="text-[18px] font-extrabold tracking-[-0.02em]">Sprintly</span>
-          </Link>
-        </div>
-
-        <WorkspaceSwitcher
-          workspaces={workspaces}
-          activeWorkspaceId={activeWorkspaceId}
-          activeProject={activeProject}
-          onCreate={() => setCreateOpen(true)}
-        />
-
-        {currentSlug ? (
-          <nav className="flex flex-col gap-px p-2">
-            <div className="sp-kicker px-2.5 pt-1.5 pb-1 text-[10px] tracking-[0.1em]">
-              Workspace
-            </div>
-            {renderNav(WORKSPACE_NAV)}
-
-            <div className="sp-kicker mt-2 px-2.5 pt-1.5 pb-1 text-[10px] tracking-[0.1em]">
-              Work
-            </div>
-            {renderNav(WORK_NAV)}
-          </nav>
-        ) : null}
+        {brand}
+        {switcher}
+        {nav}
       </aside>
+
+      <Sheet open={isMobileOpen} onOpenChange={setMobileOpen}>
+        <SheetContent className="lg:hidden">
+          <SheetTitle className="sr-only">Navigation</SheetTitle>
+          {brand}
+          {switcher}
+          {nav}
+        </SheetContent>
+      </Sheet>
 
       <CreateWorkspaceDialog open={isCreateOpen} onOpenChange={setCreateOpen} />
     </>

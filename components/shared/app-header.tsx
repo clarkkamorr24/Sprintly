@@ -5,6 +5,7 @@ import { useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Add01Icon, Menu01Icon, Search01Icon } from "@hugeicons/core-free-icons";
 
+import { useMobileNav } from "@/components/shared/mobile-nav-context";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import { UserMenu } from "@/components/shared/user-menu";
 import { CreateWorkspaceDialog } from "@/components/workspace/create-workspace-dialog";
@@ -26,6 +27,7 @@ export function AppHeader({
   activeWorkspaceId,
   unreadCount,
 }: AppHeaderProps) {
+  const { open: openMobileNav } = useMobileNav();
   const [isCreateOpen, setCreateOpen] = useState(false);
   const active = workspaces.find((w) => w.id === activeWorkspaceId);
 
@@ -81,9 +83,16 @@ export function AppHeader({
         </div>
       </header>
 
-      <div className="flex items-center gap-2 border-b border-(--sp-neutral-300) bg-(--sp-neutral-100) px-4 py-2 lg:hidden">
-        <HugeiconsIcon icon={Menu01Icon} strokeWidth={2} className="size-4 opacity-55" />
-        <span className="flex size-[22px] items-center justify-center bg-(--sp-neutral-800) text-[10px] font-extrabold text-(--sp-bg)">
+      <div className="flex items-center gap-2 border-b border-(--sp-neutral-300) bg-(--sp-neutral-100) px-2 py-1.5 lg:hidden">
+        <button
+          type="button"
+          onClick={openMobileNav}
+          aria-label="Open navigation menu"
+          className="flex size-9 shrink-0 items-center justify-center outline-none transition-colors hover:bg-[color-mix(in_srgb,var(--sp-text)_8%,transparent)] focus-visible:ring-[3px] focus-visible:ring-ring/50"
+        >
+          <HugeiconsIcon icon={Menu01Icon} strokeWidth={2} className="size-[18px]" />
+        </button>
+        <span className="flex size-[22px] shrink-0 items-center justify-center bg-(--sp-neutral-800) text-[10px] font-extrabold text-(--sp-bg)">
           {initialsOf(active?.name ?? "?")}
         </span>
         <span className="truncate text-[12px] font-semibold">

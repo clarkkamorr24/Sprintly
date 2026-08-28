@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { NoProjectState } from "@/components/project/no-project-state";
 import { ProjectSwitcher } from "@/components/project/project-switcher";
 import { SprintPlanning } from "@/components/sprint/sprint-planning";
 import { can, PERMISSIONS } from "@/lib/auth/permissions";
@@ -18,25 +19,40 @@ export default async function WorkspaceSprintsPage(
 ) {
   const { workspaceSlug } = await props.params;
 
-  const { context, project, sprints, groups, projects } = await loadPage(
-    async () => {
-      const scope = await resolveWorkspaceProjectScope(workspaceSlug);
+  const scoped = await loadPage(async () => {
+    const scope = await resolveWorkspaceProjectScope(workspaceSlug);
 
-      const [sprints, groups, projects] = await Promise.all([
-        listSprints(scope.project.id),
-        getBacklog(scope.project.id),
-        listProjects({ workspaceId: scope.workspace.workspaceId }),
-      ]);
-
-      return {
-        context: scope.context,
-        project: scope.project,
-        sprints,
-        groups,
-        projects,
-      };
+    if (!scope.project || !scope.context) {
+      return { empty: true as const, workspace: scope.workspace };
     }
-  );
+
+    const [sprints, groups, projects] = await Promise.all([
+      listSprints(scope.project.id),
+      getBacklog(scope.project.id),
+      listProjects({ workspaceId: scope.workspace.workspaceId }),
+    ]);
+
+    return {
+      empty: false as const,
+      context: scope.context,
+      project: scope.project,
+      sprints,
+      groups,
+      projects,
+    };
+  });
+
+  if (scoped.empty) {
+    return (
+      <NoProjectState
+        workspaceSlug={workspaceSlug}
+        feature="Sprint planning"
+        canCreate={can(scoped.workspace.role, PERMISSIONS.PROJECT_CREATE)}
+      />
+    );
+  }
+
+  const { context, project, sprints, groups, projects } = scoped;
 
   const unassigned = groups.find((group) => group.sprint === null);
 

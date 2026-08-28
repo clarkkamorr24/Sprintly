@@ -1,4 +1,5 @@
 import { AppHeader } from "@/components/shared/app-header";
+import { MobileNavProvider } from "@/components/shared/mobile-nav-context";
 import { AppSidebar } from "@/components/shared/app-sidebar";
 import {
   getRouteProjectId,
@@ -26,23 +27,25 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
     : null;
 
   return (
-    <div className="flex min-h-full flex-1">
-      <AppSidebar
-        workspaces={workspaces}
-        activeWorkspaceId={activeWorkspaceId}
-        activeWorkspaceSlug={activeWorkspace?.slug ?? ""}
-        activeProject={activeProject}
-      />
-
-      <div className="flex min-w-0 flex-1 flex-col">
-        <AppHeader
-          user={user}
+    <MobileNavProvider>
+      <div className="flex min-h-full flex-1">
+        <AppSidebar
           workspaces={workspaces}
           activeWorkspaceId={activeWorkspaceId}
-          unreadCount={unreadCount}
+          activeWorkspaceSlug={activeWorkspace?.slug ?? ""}
+          activeProject={activeProject}
         />
-        {children}
+
+        <div className="flex min-w-0 flex-1 flex-col">
+          <AppHeader
+            user={user}
+            workspaces={workspaces}
+            activeWorkspaceId={activeWorkspaceId}
+            unreadCount={unreadCount}
+          />
+          {children}
+        </div>
       </div>
-    </div>
+    </MobileNavProvider>
   );
 }

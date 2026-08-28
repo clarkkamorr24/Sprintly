@@ -83,9 +83,6 @@ export function BoardView({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      {/* Keyed by project and the server's task set, so switching workspace or
-          project — or changing a filter — remounts the board with fresh data
-          instead of keeping the previous board's optimistic state. */}
       <KanbanBoard
         key={boardKey}
         initialColumns={columns}

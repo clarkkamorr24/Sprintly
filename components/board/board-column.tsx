@@ -53,7 +53,7 @@ export function BoardColumn({
   return (
     <section
       aria-labelledby={headingId}
-      className="flex w-[86vw] shrink-0 flex-col border-r border-(--sp-neutral-300) sm:w-[274px]"
+      className="flex w-[86vw] shrink-0 flex-col border-r border-(--sp-neutral-300) last:border-r-0 sm:w-auto sm:min-w-[200px] sm:shrink sm:grow sm:basis-[200px]"
     >
       <header className="flex items-center gap-2 border-b border-(--sp-neutral-300) px-3.5 py-[11px]">
         <h3

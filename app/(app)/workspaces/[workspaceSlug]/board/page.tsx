@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { BoardFilters } from "@/components/board/board-filters";
 import { BoardView } from "@/components/board/board-view";
 import { EmptyState } from "@/components/shared/empty-state";
+import { NoProjectState } from "@/components/project/no-project-state";
 import { ProjectSwitcher } from "@/components/project/project-switcher";
 import { SprintBanner } from "@/components/sprint/sprint-banner";
 import { can, PERMISSIONS } from "@/lib/auth/permissions";
@@ -37,27 +38,42 @@ export default async function WorkspaceBoardPage(
     due: single(searchParams.due),
   });
 
-  const { context, project, board, meta, sprints, projects } = await loadPage(
-    async () => {
-      const scope = await resolveWorkspaceProjectScope(workspaceSlug);
+  const scoped = await loadPage(async () => {
+    const scope = await resolveWorkspaceProjectScope(workspaceSlug);
 
-      const [board, meta, sprints, projects] = await Promise.all([
-        getBoard(scope.project.id, filters),
-        getBoardMeta(scope.project.id),
-        listSprints(scope.project.id),
-        listProjects({ workspaceId: scope.workspace.workspaceId }),
-      ]);
-
-      return {
-        context: scope.context,
-        project: scope.project,
-        board,
-        meta,
-        sprints,
-        projects,
-      };
+    if (!scope.project || !scope.context) {
+      return { empty: true as const, workspace: scope.workspace };
     }
-  );
+
+    const [board, meta, sprints, projects] = await Promise.all([
+      getBoard(scope.project.id, filters),
+      getBoardMeta(scope.project.id),
+      listSprints(scope.project.id),
+      listProjects({ workspaceId: scope.workspace.workspaceId }),
+    ]);
+
+    return {
+      empty: false as const,
+      context: scope.context,
+      project: scope.project,
+      board,
+      meta,
+      sprints,
+      projects,
+    };
+  });
+
+  if (scoped.empty) {
+    return (
+      <NoProjectState
+        workspaceSlug={workspaceSlug}
+        feature="The board"
+        canCreate={can(scoped.workspace.role, PERMISSIONS.PROJECT_CREATE)}
+      />
+    );
+  }
+
+  const { context, project, board, meta, sprints, projects } = scoped;
 
   const allTasks = board.columns.flatMap((column) => column.tasks);
   const taskCount = allTasks.length;

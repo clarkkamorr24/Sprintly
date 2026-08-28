@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { BacklogView } from "@/components/backlog/backlog-view";
+import { NoProjectState } from "@/components/project/no-project-state";
 import { ProjectSwitcher } from "@/components/project/project-switcher";
 import { can, PERMISSIONS } from "@/lib/auth/permissions";
 import { resolveWorkspaceProjectScope } from "@/lib/auth/workspace-page";
@@ -17,27 +18,42 @@ export default async function WorkspaceBacklogPage(
 ) {
   const { workspaceSlug } = await props.params;
 
-  const { context, project, groups, board, meta, projects } = await loadPage(
-    async () => {
-      const scope = await resolveWorkspaceProjectScope(workspaceSlug);
+  const scoped = await loadPage(async () => {
+    const scope = await resolveWorkspaceProjectScope(workspaceSlug);
 
-      const [groups, board, meta, projects] = await Promise.all([
-        getBacklog(scope.project.id),
-        getBoard(scope.project.id),
-        getBoardMeta(scope.project.id),
-        listProjects({ workspaceId: scope.workspace.workspaceId }),
-      ]);
-
-      return {
-        context: scope.context,
-        project: scope.project,
-        groups,
-        board,
-        meta,
-        projects,
-      };
+    if (!scope.project || !scope.context) {
+      return { empty: true as const, workspace: scope.workspace };
     }
-  );
+
+    const [groups, board, meta, projects] = await Promise.all([
+      getBacklog(scope.project.id),
+      getBoard(scope.project.id),
+      getBoardMeta(scope.project.id),
+      listProjects({ workspaceId: scope.workspace.workspaceId }),
+    ]);
+
+    return {
+      empty: false as const,
+      context: scope.context,
+      project: scope.project,
+      groups,
+      board,
+      meta,
+      projects,
+    };
+  });
+
+  if (scoped.empty) {
+    return (
+      <NoProjectState
+        workspaceSlug={workspaceSlug}
+        feature="The backlog"
+        canCreate={can(scoped.workspace.role, PERMISSIONS.PROJECT_CREATE)}
+      />
+    );
+  }
+
+  const { context, project, groups, board, meta, projects } = scoped;
 
   const columnNames = new Map(
     board.columns.map((column) => [column.id, column.name])

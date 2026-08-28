@@ -180,7 +180,7 @@ export function KanbanBoard({
         cancelDrag();
       }}
     >
-      <div className="flex flex-1 items-stretch overflow-x-auto">
+      <div className="flex w-full flex-1 items-stretch overflow-x-auto">
         {columns.map((column) => (
           <BoardColumn
             key={column.id}

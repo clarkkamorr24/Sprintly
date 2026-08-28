@@ -61,7 +61,7 @@ export function InviteMemberForm({ workspaceId }: InviteMemberFormProps) {
       noValidate
       className="flex flex-wrap items-end gap-3 rounded-xl border border-border bg-card p-4"
     >
-      <div className="min-w-56 flex-1 space-y-2">
+      <div className="flex min-w-56 flex-1 flex-col gap-2">
         <Label htmlFor="invite-email">Invite by email</Label>
         <Input
           id="invite-email"
@@ -76,7 +76,7 @@ export function InviteMemberForm({ workspaceId }: InviteMemberFormProps) {
         />
       </div>
 
-      <div className="space-y-2">
+      <div className="flex flex-col gap-2">
         <Label htmlFor="invite-role">Role</Label>
         <Select
           items={ROLE_ITEMS}
