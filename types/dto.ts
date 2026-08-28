@@ -37,6 +37,7 @@ export interface WorkspaceDTO {
 export interface ProjectDTO {
   readonly id: string;
   readonly workspaceId: string;
+  readonly workspaceSlug: string;
   readonly name: string;
   readonly key: string;
   readonly description: string | null;
@@ -77,6 +78,15 @@ export interface TaskCardDTO {
   readonly hasDescription: boolean;
   readonly sprintId: string | null;
   readonly sprintName: string | null;
+}
+
+export interface WorkspaceIssueDTO extends TaskCardDTO {
+  readonly projectId: string;
+  readonly projectKey: string;
+  readonly projectName: string;
+  readonly columnName: string;
+  readonly isDone: boolean;
+  readonly updatedAt: string;
 }
 
 export interface BoardColumnDTO {

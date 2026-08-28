@@ -1,5 +1,9 @@
 import { AppHeader } from "@/components/shared/app-header";
 import { AppSidebar } from "@/components/shared/app-sidebar";
+import {
+  getRouteProjectId,
+  resolveActiveWorkspace,
+} from "@/lib/auth/active-workspace";
 import { requireUserOrRedirect } from "@/lib/auth/session";
 import { getActiveProject } from "@/services/project-service";
 import { getUnreadCount } from "@/services/notification-service";
@@ -15,9 +19,10 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
     getUnreadCount(),
   ]);
 
-  const activeWorkspaceId = workspaces[0]?.id ?? "";
-  const activeProject = activeWorkspaceId
-    ? await getActiveProject(activeWorkspaceId)
+  const activeWorkspace = await resolveActiveWorkspace(workspaces);
+  const activeWorkspaceId = activeWorkspace?.id ?? "";
+  const activeProject = activeWorkspace
+    ? await getActiveProject(activeWorkspace.id, await getRouteProjectId())
     : null;
 
   return (
@@ -25,6 +30,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
       <AppSidebar
         workspaces={workspaces}
         activeWorkspaceId={activeWorkspaceId}
+        activeWorkspaceSlug={activeWorkspace?.slug ?? ""}
         activeProject={activeProject}
       />
 

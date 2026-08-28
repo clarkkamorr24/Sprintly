@@ -115,8 +115,13 @@ export function SprintPlanning({
     (sprint) => sprint.status !== SprintStatus.COMPLETED
   );
 
-  const [targetId, setTargetId] = useState<string>(openSprints[0]?.id ?? "");
-  const target = openSprints.find((sprint) => sprint.id === targetId) ?? null;
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const target =
+    openSprints.find((sprint) => sprint.id === selectedId) ??
+    openSprints[0] ??
+    null;
+  const targetId = target?.id ?? "";
   const targetTasks =
     groups.find((group) => group.sprint?.id === targetId)?.tasks ?? [];
   const targetPoints = targetTasks.reduce(
@@ -188,7 +193,7 @@ export function SprintPlanning({
         <Select
           items={openSprints.map((s) => ({ value: s.id, label: s.name }))}
           value={targetId}
-          onValueChange={(value) => setTargetId(String(value))}
+          onValueChange={(value) => setSelectedId(String(value))}
         >
           <SelectTrigger size="sm" aria-label="Sprint to plan">
             <SelectValue />

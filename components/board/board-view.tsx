@@ -46,9 +46,12 @@ export function BoardView({
     },
   });
 
-  const boardKey = columns
-    .map((column) => `${column.id}:${column.tasks.map((t) => t.id).join(",")}`)
-    .join("|");
+  const boardKey = [
+    projectId,
+    ...columns.map(
+      (column) => `${column.id}:${column.tasks.map((t) => t.id).join(",")}`
+    ),
+  ].join("|");
 
   const handleDelete = (task: TaskCardDTO) => {
     startTransition(async () => {
@@ -80,8 +83,9 @@ export function BoardView({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      {/* Keyed by the server's task set so a filter change remounts the board
-          with fresh data instead of keeping stale optimistic state. */}
+      {/* Keyed by project and the server's task set, so switching workspace or
+          project — or changing a filter — remounts the board with fresh data
+          instead of keeping the previous board's optimistic state. */}
       <KanbanBoard
         key={boardKey}
         initialColumns={columns}

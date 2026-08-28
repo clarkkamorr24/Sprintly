@@ -37,3 +37,5 @@ export const LABEL_COLORS = [
   "#6366f1",
   "#ec4899",
 ] as const;
+
+export const PATHNAME_HEADER = "x-sprintly-pathname";

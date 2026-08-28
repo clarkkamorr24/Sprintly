@@ -54,7 +54,7 @@ export function CreateWorkspaceDialog({
 
       toast.success(`Workspace "${result.data.name}" created.`);
       onOpenChange(false);
-      router.push(`/workspaces/${result.data.id}`);
+      router.push(`/workspaces/${result.data.slug}`);
       router.refresh();
     });
   };

@@ -19,12 +19,14 @@ const STEPS = ["Welcome", "Workspace", "Project", "Invite"] as const;
 interface OnboardingFlowProps {
   readonly userName: string;
   readonly workspaceId: string;
+  readonly workspaceSlug: string;
   readonly workspaceName: string;
 }
 
 export function OnboardingFlow({
   userName,
   workspaceId,
+  workspaceSlug,
   workspaceName,
 }: OnboardingFlowProps) {
   const router = useRouter();
@@ -36,7 +38,7 @@ export function OnboardingFlow({
   const [error, setError] = useState<string | null>(null);
 
   const finish = () => {
-    router.push(`/workspaces/${workspaceId}`);
+    router.push(`/workspaces/${workspaceSlug}`);
     router.refresh();
   };
 

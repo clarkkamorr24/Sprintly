@@ -1,6 +1,10 @@
 import "server-only";
 
-import { requireProjectAccess, requireProjectPermission } from "@/lib/auth/guards";
+import {
+  requireProjectAccess,
+  requireProjectPermission,
+  requireWorkspaceAccess,
+} from "@/lib/auth/guards";
 import { canModifyTask, PERMISSIONS } from "@/lib/auth/permissions";
 import { ConflictError, ForbiddenError, NotFoundError } from "@/lib/errors";
 import {
@@ -12,7 +16,8 @@ import * as activityRepo from "@/repositories/activity-repository";
 import * as repo from "@/repositories/board-repository";
 import * as notificationService from "@/services/notification-service";
 import { listSprints } from "@/services/sprint-service";
-import type { BoardFilters } from "@/schemas/task";
+import { PAGE_SIZE } from "@/lib/constants";
+import type { BoardFilters, WorkspaceIssueFilters } from "@/schemas/task";
 import type {
   CreateColumnInput,
   DeleteColumnInput,
@@ -27,8 +32,10 @@ import type {
   SprintDTO,
   TaskCardDTO,
   UserDTO,
+  WorkspaceIssueDTO,
 } from "@/types/dto";
 import type { Prisma } from "@/lib/generated/prisma/client";
+import type { Paginated } from "@/types/api";
 
 const MAX_COLUMNS = 12;
 
@@ -345,4 +352,40 @@ export async function getBacklog(
   });
 
   return groups;
+}
+
+export async function listWorkspaceIssues(
+  workspaceId: string,
+  filters: WorkspaceIssueFilters
+): Promise<Paginated<WorkspaceIssueDTO>> {
+  await requireWorkspaceAccess(workspaceId);
+
+  const where: Prisma.TaskWhereInput = buildTaskFilter(filters);
+
+  if (filters.projectId) where.projectId = filters.projectId;
+  if (filters.status === "open") where.completedAt = null;
+  if (filters.status === "done") where.completedAt = { not: null };
+
+  const take = PAGE_SIZE.DEFAULT;
+  const skip = (filters.page - 1) * take;
+
+  const [issues, total] = await Promise.all([
+    repo.findWorkspaceIssues({ workspaceId, where, take, skip }),
+    repo.countWorkspaceIssues(workspaceId, where),
+  ]);
+
+  return {
+    items: issues.map((issue) => ({
+      ...toTaskCardDTO(issue),
+      projectId: issue.projectId,
+      projectKey: issue.project.key,
+      projectName: issue.project.name,
+      columnName: issue.column.name,
+      isDone: issue.column.isDone,
+      updatedAt: issue.updatedAt.toISOString(),
+    })),
+    total,
+    page: filters.page,
+    pageSize: take,
+  };
 }

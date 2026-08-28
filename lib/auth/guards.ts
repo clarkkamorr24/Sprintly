@@ -6,11 +6,14 @@ import { requireUser } from "@/lib/auth/session";
 import { can, type Permission } from "@/lib/auth/permissions";
 import { db } from "@/lib/db";
 import { ForbiddenError, NotFoundError } from "@/lib/errors";
+import { isUuid } from "@/lib/validation";
 import type { ProjectContext, WorkspaceContext } from "@/types/auth";
 
 export const requireWorkspaceAccess = cache(
   async (workspaceId: string): Promise<WorkspaceContext> => {
     const user = await requireUser();
+
+    if (!isUuid(workspaceId)) throw new NotFoundError("Workspace not found.");
 
     const membership = await db.workspaceMember.findUnique({
       where: { workspaceId_userId: { workspaceId, userId: user.id } },
@@ -20,6 +23,27 @@ export const requireWorkspaceAccess = cache(
     if (!membership) throw new NotFoundError("Workspace not found.");
 
     return { user, workspaceId, role: membership.role };
+  }
+);
+
+export const requireWorkspaceBySlug = cache(
+  async (slug: string): Promise<WorkspaceContext> => {
+    const user = await requireUser();
+
+    const workspace = await db.workspace.findUnique({
+      where: { slug },
+      select: {
+        id: true,
+        members: { where: { userId: user.id }, select: { role: true } },
+      },
+    });
+
+    const membership = workspace?.members[0];
+    if (!workspace || !membership) {
+      throw new NotFoundError("Workspace not found.");
+    }
+
+    return { user, workspaceId: workspace.id, role: membership.role };
   }
 );
 
@@ -39,6 +63,8 @@ export async function requireWorkspacePermission(
 export const requireProjectAccess = cache(
   async (projectId: string): Promise<ProjectContext> => {
     const user = await requireUser();
+
+    if (!isUuid(projectId)) throw new NotFoundError("Project not found.");
 
     const project = await db.project.findUnique({
       where: { id: projectId },

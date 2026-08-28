@@ -21,6 +21,7 @@ function toProjectDTO(project: repo.ProjectRecord): ProjectDTO {
   return {
     id: project.id,
     workspaceId: project.workspaceId,
+    workspaceSlug: project.workspace.slug,
     name: project.name,
     key: project.key,
     description: project.description,
@@ -101,12 +102,22 @@ export async function deleteProject(input: DeleteProjectInput): Promise<void> {
 }
 
 export async function getActiveProject(
-  workspaceId: string
+  workspaceId: string,
+  preferredProjectId?: string
 ): Promise<{ id: string; name: string; key: string } | null> {
   try {
     await requireWorkspaceAccess(workspaceId);
   } catch {
     return null;
+  }
+
+  if (preferredProjectId) {
+    const preferred = await repo.findProjectInWorkspace(
+      preferredProjectId,
+      workspaceId
+    );
+
+    if (preferred) return preferred;
   }
 
   return repo.findFirstProject(workspaceId);

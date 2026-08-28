@@ -13,7 +13,7 @@ const invitationSelect = {
   expiresAt: true,
   createdAt: true,
   workspaceId: true,
-  workspace: { select: { id: true, name: true } },
+  workspace: { select: { id: true, name: true, slug: true } },
   invitedBy: { select: userSelect },
 } as const;
 

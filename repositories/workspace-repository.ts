@@ -159,3 +159,17 @@ export function updateWorkspaceIcon(workspaceId: string, iconColor: string) {
     select: { id: true },
   });
 }
+
+export function findWorkspaceSlugs(workspaceIds: readonly string[]) {
+  return db.workspace.findMany({
+    where: { id: { in: [...workspaceIds] } },
+    select: { id: true, slug: true },
+  });
+}
+
+export function findWorkspaceSlugsByProject(projectIds: readonly string[]) {
+  return db.project.findMany({
+    where: { id: { in: [...projectIds] } },
+    select: { id: true, workspace: { select: { slug: true } } },
+  });
+}

@@ -4,6 +4,7 @@ import { requireUser } from "@/lib/auth/session";
 import { NotFoundError } from "@/lib/errors";
 import { broadcastNotificationCreated } from "@/lib/realtime/server";
 import * as repo from "@/repositories/notification-repository";
+import * as workspaceRepo from "@/repositories/workspace-repository";
 import type {
   DeleteNotificationInput,
   ListNotificationsInput,
@@ -16,13 +17,51 @@ type NotificationRecord = Awaited<
   ReturnType<typeof repo.findNotifications>
 >[number];
 
-function linkFor(notification: NotificationRecord): string | null {
-  if (notification.projectId) return `/projects/${notification.projectId}`;
-  if (notification.workspaceId) return `/workspaces/${notification.workspaceId}`;
+async function workspaceSlugsById(
+  workspaceIds: readonly string[]
+): Promise<ReadonlyMap<string, string>> {
+  const unique = [...new Set(workspaceIds)];
+  if (unique.length === 0) return new Map();
+
+  const workspaces = await workspaceRepo.findWorkspaceSlugs(unique);
+
+  return new Map(workspaces.map((w) => [w.id, w.slug]));
+}
+
+async function workspaceSlugsByProject(
+  projectIds: readonly string[]
+): Promise<ReadonlyMap<string, string>> {
+  const unique = [...new Set(projectIds)];
+  if (unique.length === 0) return new Map();
+
+  const projects = await workspaceRepo.findWorkspaceSlugsByProject(unique);
+
+  return new Map(projects.map((p) => [p.id, p.workspace.slug]));
+}
+
+function linkFor(
+  notification: NotificationRecord,
+  slugByWorkspace: ReadonlyMap<string, string>,
+  slugByProject: ReadonlyMap<string, string>
+): string | null {
+  if (notification.projectId) {
+    const slug = slugByProject.get(notification.projectId);
+    return slug ? `/workspaces/${slug}/board` : null;
+  }
+
+  if (notification.workspaceId) {
+    const slug = slugByWorkspace.get(notification.workspaceId);
+    return slug ? `/workspaces/${slug}` : null;
+  }
+
   return null;
 }
 
-function toNotificationDTO(notification: NotificationRecord): NotificationDTO {
+function toNotificationDTO(
+  notification: NotificationRecord,
+  slugByWorkspace: ReadonlyMap<string, string>,
+  slugByProject: ReadonlyMap<string, string>
+): NotificationDTO {
   return {
     id: notification.id,
     type: notification.type,
@@ -31,7 +70,7 @@ function toNotificationDTO(notification: NotificationRecord): NotificationDTO {
     actor: notification.actor,
     isRead: notification.readAt !== null,
     createdAt: notification.createdAt.toISOString(),
-    href: linkFor(notification),
+    href: linkFor(notification, slugByWorkspace, slugByProject),
   };
 }
 
@@ -50,8 +89,23 @@ export async function listNotifications(
     repo.countNotifications(user.id, input.unreadOnly),
   ]);
 
+  const [slugByWorkspace, slugByProject] = await Promise.all([
+    workspaceSlugsById(
+      notifications
+        .map((notification) => notification.workspaceId)
+        .filter((id): id is string => id !== null)
+    ),
+    workspaceSlugsByProject(
+      notifications
+        .map((notification) => notification.projectId)
+        .filter((id): id is string => id !== null)
+    ),
+  ]);
+
   return {
-    items: notifications.map(toNotificationDTO),
+    items: notifications.map((notification) =>
+      toNotificationDTO(notification, slugByWorkspace, slugByProject)
+    ),
     total,
     page: input.page,
     pageSize: input.pageSize,

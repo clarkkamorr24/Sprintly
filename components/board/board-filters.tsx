@@ -21,21 +21,17 @@ import type { LabelDTO, UserDTO } from "@/types/dto";
 const ANY = "any";
 
 interface BoardFiltersProps {
-  readonly projectId: string;
   readonly members: readonly UserDTO[];
   readonly labels: readonly LabelDTO[];
   readonly resultCount: number;
 }
 
 export function BoardFilters({
-  projectId,
   members,
   labels,
   resultCount,
 }: BoardFiltersProps) {
-  const { filters, activeCount, setFilter, clearFilters } = useBoardFilters(
-    `/projects/${projectId}`
-  );
+  const { filters, activeCount, setFilter, clearFilters } = useBoardFilters();
 
   const [searchDraft, setSearchDraft] = useState(filters.search ?? "");
 

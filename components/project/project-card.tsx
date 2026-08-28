@@ -1,5 +1,4 @@
-import Link from "next/link";
-
+import { OpenProjectLink } from "@/components/project/open-project-link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProjectStatus } from "@/lib/generated/prisma/enums";
@@ -37,12 +36,13 @@ export function ProjectCard({ project }: ProjectCardProps) {
           />
           <div className="min-w-0 flex-1">
             <CardTitle className="truncate text-base">
-              <Link
-                href={`/projects/${project.id}`}
+              <OpenProjectLink
+                projectId={project.id}
+                workspaceSlug={project.workspaceSlug}
                 className="rounded-sm outline-none after:absolute after:inset-0 focus-visible:ring-[3px] focus-visible:ring-ring/50"
               >
                 {project.name}
-              </Link>
+              </OpenProjectLink>
             </CardTitle>
           </div>
           <Badge variant={STATUS_VARIANT[project.status]}>

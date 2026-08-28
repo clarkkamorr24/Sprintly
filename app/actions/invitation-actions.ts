@@ -19,7 +19,7 @@ export async function inviteMemberAction(
     const data = parseInput(inviteMemberSchema, input);
     const invitation = await invitationService.inviteMember(data);
 
-    revalidatePath(`/workspaces/${data.workspaceId}/members`);
+    revalidatePath("/workspaces/[workspaceSlug]/team", "page");
     return invitation;
   });
 }

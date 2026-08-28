@@ -9,6 +9,7 @@ import { userSelect } from "@/repositories/workspace-repository";
 const projectSelect = {
   id: true,
   workspaceId: true,
+  workspace: { select: { slug: true } },
   name: true,
   key: true,
   description: true,
@@ -47,6 +48,13 @@ export function findFirstProject(workspaceId: string) {
     where: { workspaceId, status: { not: "ARCHIVED" } },
     select: { id: true, name: true, key: true },
     orderBy: [{ status: "asc" }, { updatedAt: "desc" }],
+  });
+}
+
+export function findProjectInWorkspace(projectId: string, workspaceId: string) {
+  return db.project.findFirst({
+    where: { id: projectId, workspaceId },
+    select: { id: true, name: true, key: true },
   });
 }
 

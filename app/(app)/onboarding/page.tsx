@@ -21,6 +21,7 @@ export default async function OnboardingPage() {
       <OnboardingFlow
         userName={user.name}
         workspaceId={workspace.id}
+        workspaceSlug={workspace.slug}
         workspaceName={workspace.name}
       />
     </main>

@@ -128,6 +128,7 @@ export async function revokeInvitation(
 
 export interface AcceptedInvitation {
   readonly workspaceId: string;
+  readonly workspaceSlug: string;
   readonly workspaceName: string;
 }
 
@@ -169,6 +170,7 @@ export async function acceptInvitation(
 
   return {
     workspaceId: invitation.workspaceId,
+    workspaceSlug: invitation.workspace.slug,
     workspaceName: invitation.workspace.name,
   };
 }

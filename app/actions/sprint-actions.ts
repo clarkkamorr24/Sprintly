@@ -26,7 +26,7 @@ export async function createSprintAction(
     const data = parseInput(createSprintSchema, input);
     const sprint = await sprintService.createSprint(data);
 
-    revalidatePath(`/projects/${data.projectId}`);
+    revalidatePath("/workspaces/[workspaceSlug]", "layout");
     return sprint;
   });
 }
@@ -38,7 +38,7 @@ export async function updateSprintAction(
     const data = parseInput(updateSprintSchema, input);
     const sprint = await sprintService.updateSprint(data);
 
-    revalidatePath(`/projects/${sprint.projectId}`);
+    revalidatePath("/workspaces/[workspaceSlug]", "layout");
     return sprint;
   });
 }
@@ -51,7 +51,7 @@ export async function changeSprintStatusAction(
     const actor = await requireUser();
     const sprint = await sprintService.changeSprintStatus(data);
 
-    revalidatePath(`/projects/${sprint.projectId}`);
+    revalidatePath("/workspaces/[workspaceSlug]", "layout");
     after(() =>
       broadcastBoardChanged({ projectId: sprint.projectId, actorId: actor.id })
     );
@@ -66,7 +66,7 @@ export async function deleteSprintAction(
     const data = parseInput(deleteSprintSchema, input);
     await sprintService.deleteSprint(data);
 
-    revalidatePath("/projects", "layout");
+    revalidatePath("/workspaces/[workspaceSlug]", "layout");
     return null;
   });
 }
@@ -81,7 +81,7 @@ export async function assignTaskToSprintAction(
 
     await sprintService.assignTaskToSprint(data);
 
-    revalidatePath(`/projects/${task.projectId}`);
+    revalidatePath("/workspaces/[workspaceSlug]", "layout");
     after(() =>
       broadcastBoardChanged({ projectId: task.projectId, actorId: actor.id })
     );

@@ -82,7 +82,7 @@ export function SignUpForm({ next }: SignUpFormProps) {
             name="name"
             autoComplete="name"
             autoFocus
-            placeholder="Clark Amor"
+            placeholder="John Doe"
             aria-invalid={fieldErrors.name ? true : undefined}
             disabled={isPending}
             required

@@ -200,3 +200,33 @@ export function findProjectTasks(projectId: string) {
     orderBy: [{ sprintId: { sort: "asc", nulls: "last" } }, { position: "asc" }],
   });
 }
+
+export function findWorkspaceIssues(input: {
+  workspaceId: string;
+  where: Prisma.TaskWhereInput;
+  take: number;
+  skip: number;
+}) {
+  return db.task.findMany({
+    where: { project: { workspaceId: input.workspaceId }, ...input.where },
+    select: {
+      ...taskCardSelect,
+      projectId: true,
+      project: { select: { key: true, name: true } },
+      column: { select: { name: true, isDone: true } },
+      updatedAt: true,
+    },
+    orderBy: [{ updatedAt: "desc" }],
+    take: input.take,
+    skip: input.skip,
+  });
+}
+
+export function countWorkspaceIssues(
+  workspaceId: string,
+  where: Prisma.TaskWhereInput
+) {
+  return db.task.count({
+    where: { project: { workspaceId }, ...where },
+  });
+}

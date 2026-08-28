@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { OpenProjectLink } from "@/components/project/open-project-link";
 
 import { Badge } from "@/components/ui/badge";
 import { PRIORITY_LABEL, PRIORITY_STYLE } from "@/lib/task-display";
@@ -8,9 +8,10 @@ import type { MyTaskDTO } from "@/types/dto";
 interface MyTasksProps {
   readonly tasks: readonly MyTaskDTO[];
   readonly total: number;
+  readonly workspaceSlug: string;
 }
 
-export function MyTasks({ tasks, total }: MyTasksProps) {
+export function MyTasks({ tasks, total, workspaceSlug }: MyTasksProps) {
   return (
     <section className="rounded-xl border border-border bg-card p-4">
       <div className="flex items-baseline justify-between gap-2">
@@ -41,12 +42,13 @@ export function MyTasks({ tasks, total }: MyTasksProps) {
                   />
 
                   <div className="min-w-0 flex-1">
-                    <Link
-                      href={`/projects/${task.project.id}`}
+                    <OpenProjectLink
+                      projectId={task.project.id}
+                      workspaceSlug={workspaceSlug}
                       className="rounded-sm text-sm font-medium outline-none hover:underline focus-visible:ring-[3px] focus-visible:ring-ring/50"
                     >
                       {task.title}
-                    </Link>
+                    </OpenProjectLink>
 
                     <p className="text-xs text-muted-foreground">
                       {task.project.name} · {task.columnName}

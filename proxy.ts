@@ -1,11 +1,15 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
+import { PATHNAME_HEADER } from "@/lib/constants";
+
 const PUBLIC_ROUTES = ["/sign-in", "/sign-up", "/auth"];
 
 export async function proxy(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl;
   const isPublic = PUBLIC_ROUTES.some((route) => pathname.startsWith(route));
+
+  request.headers.set(PATHNAME_HEADER, pathname);
 
   let response = NextResponse.next({ request });
 

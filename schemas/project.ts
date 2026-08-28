@@ -40,12 +40,17 @@ export const deleteProjectSchema = z.object({
   projectId: uuidSchema,
 });
 
+export const selectProjectSchema = z.object({
+  projectId: uuidSchema,
+});
+
 export const listProjectsSchema = z.object({
   workspaceId: uuidSchema,
   status: projectStatusSchema.optional(),
   search: z.string().trim().max(80).optional(),
 });
 
+export type SelectProjectInput = z.infer<typeof selectProjectSchema>;
 export type CreateProjectInput = z.infer<typeof createProjectSchema>;
 export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;
 export type DeleteProjectInput = z.infer<typeof deleteProjectSchema>;

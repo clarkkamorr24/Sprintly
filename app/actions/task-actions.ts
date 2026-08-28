@@ -29,7 +29,7 @@ export async function createTaskAction(
     const actor = await requireUser();
     const task = await taskService.createTask(data);
 
-    revalidatePath(`/projects/${data.projectId}`);
+    revalidatePath("/workspaces/[workspaceSlug]", "layout");
     after(() =>
       broadcastBoardChanged({ projectId: data.projectId, actorId: actor.id })
     );
@@ -45,7 +45,7 @@ export async function updateTaskAction(
     const actor = await requireUser();
     const task = await taskService.updateTask(data);
 
-    revalidatePath(`/projects/${task.projectId}`);
+    revalidatePath("/workspaces/[workspaceSlug]", "layout");
     after(() =>
       broadcastBoardChanged({ projectId: task.projectId, actorId: actor.id })
     );
@@ -62,7 +62,7 @@ export async function deleteTaskAction(
     const task = await taskService.getTask(data.taskId);
     await taskService.deleteTask(data);
 
-    revalidatePath("/projects", "layout");
+    revalidatePath("/workspaces/[workspaceSlug]", "layout");
     after(() =>
       broadcastBoardChanged({ projectId: task.projectId, actorId: actor.id })
     );

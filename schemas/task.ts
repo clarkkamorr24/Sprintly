@@ -66,7 +66,14 @@ export const boardFiltersSchema = z.object({
   due: z.enum(["overdue", "today", "week"]).optional(),
 });
 
+export const workspaceIssueFiltersSchema = boardFiltersSchema.extend({
+  projectId: uuidSchema.optional(),
+  status: z.enum(["open", "done"]).optional(),
+  page: z.coerce.number().int().min(1).default(1),
+});
+
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;
 export type UpdateTaskInput = z.infer<typeof updateTaskSchema>;
 export type DeleteTaskInput = z.infer<typeof deleteTaskSchema>;
 export type BoardFilters = z.infer<typeof boardFiltersSchema>;
+export type WorkspaceIssueFilters = z.infer<typeof workspaceIssueFiltersSchema>;

@@ -47,7 +47,7 @@ export async function updateMemberRoleAction(
     const data = parseInput(updateMemberRoleSchema, input);
     const member = await workspaceService.updateMemberRole(data);
 
-    revalidatePath(`/workspaces/${data.workspaceId}/members`);
+    revalidatePath("/workspaces/[workspaceSlug]/team", "page");
     return member;
   });
 }
@@ -59,7 +59,7 @@ export async function removeMemberAction(
     const data = parseInput(removeMemberSchema, input);
     await workspaceService.removeMember(data);
 
-    revalidatePath(`/workspaces/${data.workspaceId}/members`);
+    revalidatePath("/workspaces/[workspaceSlug]/team", "page");
     return null;
   });
 }
@@ -83,7 +83,7 @@ export async function transferOwnershipAction(
     const data = parseInput(transferOwnershipSchema, input);
     await workspaceService.transferOwnership(data);
 
-    revalidatePath(`/workspaces/${data.workspaceId}/settings`);
+    revalidatePath("/workspaces/[workspaceSlug]/settings", "page");
     return null;
   });
 }

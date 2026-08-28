@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowDown01Icon, Add01Icon, Tick02Icon } from "@hugeicons/core-free-icons";
 
@@ -23,6 +23,26 @@ interface WorkspaceSwitcherProps {
   readonly onCreate: () => void;
 }
 
+const PORTABLE_SECTIONS = [
+  "projects",
+  "board",
+  "backlog",
+  "sprints",
+  "issues",
+  "team",
+  "reports",
+  "settings",
+] as const;
+
+function targetPath(pathname: string, slug: string): string {
+  const section = /^\/workspaces\/[^/]+\/([^/]+)/.exec(pathname)?.[1];
+
+  return section &&
+    (PORTABLE_SECTIONS as readonly string[]).includes(section)
+    ? `/workspaces/${slug}/${section}`
+    : `/workspaces/${slug}`;
+}
+
 export function WorkspaceSwitcher({
   workspaces,
   activeWorkspaceId,
@@ -30,11 +50,18 @@ export function WorkspaceSwitcher({
   onCreate,
 }: WorkspaceSwitcherProps) {
   const router = useRouter();
-  const active = workspaces.find((w) => w.id === activeWorkspaceId);
+  const pathname = usePathname();
+
+  const routeSlug = /^\/workspaces\/([^/]+)/.exec(pathname)?.[1];
+  const active =
+    workspaces.find((w) => w.slug === routeSlug) ??
+    workspaces.find((w) => w.id === activeWorkspaceId);
   const name = active?.name ?? "Select workspace";
 
-  const subtitle = activeProject
-    ? `${activeProject.name} · ${activeProject.key}`
+  const project = routeSlug ? null : activeProject;
+
+  const subtitle = project
+    ? `${project.name} · ${project.key}`
     : active
       ? `${active.projectCount} ${active.projectCount === 1 ? "project" : "projects"}`
       : "No workspace selected";
@@ -69,10 +96,10 @@ export function WorkspaceSwitcher({
           {workspaces.map((workspace) => (
             <DropdownMenuItem
               key={workspace.id}
-              onClick={() => router.push(`/workspaces/${workspace.id}`)}
+              onClick={() => router.push(targetPath(pathname, workspace.slug))}
             >
               <span className="flex-1 truncate">{workspace.name}</span>
-              {workspace.id === activeWorkspaceId ? (
+              {workspace.id === active?.id ? (
                 <HugeiconsIcon icon={Tick02Icon} strokeWidth={2} className="size-4" />
               ) : null}
             </DropdownMenuItem>
@@ -82,11 +109,11 @@ export function WorkspaceSwitcher({
         <DropdownMenuSeparator />
 
         <DropdownMenuGroup>
-          {activeWorkspaceId ? (
+          {active ? (
             <DropdownMenuItem
-              onClick={() => router.push(`/workspaces/${activeWorkspaceId}/members`)}
+              onClick={() => router.push(`/workspaces/${active.slug}/team`)}
             >
-              Members
+              Team
             </DropdownMenuItem>
           ) : null}
           <DropdownMenuItem onClick={onCreate}>

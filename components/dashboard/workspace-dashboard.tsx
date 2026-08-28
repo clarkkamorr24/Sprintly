@@ -6,9 +6,13 @@ import type { DashboardDTO } from "@/types/dto";
 
 interface WorkspaceDashboardProps {
   readonly dashboard: DashboardDTO;
+  readonly workspaceSlug: string;
 }
 
-export function WorkspaceDashboard({ dashboard }: WorkspaceDashboardProps) {
+export function WorkspaceDashboard({
+  dashboard,
+  workspaceSlug,
+}: WorkspaceDashboardProps) {
   const { stats } = dashboard;
 
   const completionRate = stats.totalTasks
@@ -40,7 +44,11 @@ export function WorkspaceDashboard({ dashboard }: WorkspaceDashboardProps) {
 
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <MyTasks tasks={dashboard.myTasks} total={stats.myOpenTasks} />
+          <MyTasks
+            tasks={dashboard.myTasks}
+            total={stats.myOpenTasks}
+            workspaceSlug={workspaceSlug}
+          />
         </div>
         <PriorityBreakdown items={dashboard.byPriority} />
       </div>
