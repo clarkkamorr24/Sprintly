@@ -1,7 +1,7 @@
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { describeActivity } from "@/lib/activity-text";
-import { formatRelativeTime } from "@/lib/utils";
 import type { ActivityEntryDTO } from "@/types/dto";
+import { RelativeTime } from "@/components/shared/relative-time";
 
 interface ActivityTimelineProps {
   readonly entries: readonly ActivityEntryDTO[];
@@ -35,7 +35,7 @@ export function ActivityTimeline({ entries, total }: ActivityTimelineProps) {
                 dateTime={entry.createdAt}
                 className="whitespace-nowrap text-xs"
               >
-                {formatRelativeTime(entry.createdAt)}
+                <RelativeTime iso={entry.createdAt} />
               </time>
             </p>
           </li>

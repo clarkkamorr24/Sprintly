@@ -76,9 +76,10 @@ export async function getTaskDetailAction(
   return handleAction("getTaskDetailAction", async () => {
     const id = parseInput(uuidSchema, taskId);
 
-    const [task, canEdit, subtasks, comments, activity] = await Promise.all([
+    const [task, canEdit, members, subtasks, comments, activity] = await Promise.all([
       taskService.getTask(id),
       taskService.canViewerEditTask(id),
+      taskService.listAssignableMembers(id),
       subtaskService.listSubtasks(id),
       commentService.listComments({
         taskId: id,
@@ -92,6 +93,6 @@ export async function getTaskDetailAction(
       }),
     ]);
 
-    return { task, canEdit, subtasks, comments, activity };
+    return { task, canEdit, members, subtasks, comments, activity };
   });
 }

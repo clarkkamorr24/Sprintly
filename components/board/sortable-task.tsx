@@ -37,7 +37,8 @@ export function SortableTask({ task, onOpen, menu, disabled }: SortableTaskProps
         onOpen={onOpen}
         isDragging={isDragging}
         menu={menu}
-        dragHandleProps={disabled ? undefined : { ...attributes, ...listeners }}
+        dragProps={disabled ? undefined : listeners}
+        keyboardDragProps={disabled ? undefined : { ...attributes, ...listeners }}
       />
     </li>
   );

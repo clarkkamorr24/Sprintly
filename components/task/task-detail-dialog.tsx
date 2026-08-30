@@ -4,9 +4,9 @@ import { useCallback, useEffect, useState, useTransition } from "react";
 
 import { getTaskDetailAction } from "@/app/actions/task-actions";
 import { ActivityTimeline } from "@/components/task/activity-timeline";
+import { AssigneePicker } from "@/components/task/assignee-picker";
 import { CommentList } from "@/components/task/comment-list";
 import { SubtaskList } from "@/components/task/subtask-list";
-import { UserAvatar } from "@/components/shared/user-avatar";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
@@ -141,19 +141,14 @@ function TaskDetailContent({
               </div>
 
               <div className="flex items-center gap-2">
-                <dt className="text-muted-foreground">Assignees</dt>
+                <dt className="text-muted-foreground">Assignee</dt>
                 <dd>
-                  {task.assignees.length === 0 ? (
-                    <span className="text-muted-foreground">Unassigned</span>
-                  ) : (
-                    <ul className="flex -space-x-1.5">
-                      {task.assignees.map((user) => (
-                        <li key={user.id} title={user.name}>
-                          <UserAvatar user={user} size="sm" />
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                  <AssigneePicker
+                    task={task}
+                    members={bundle.members}
+                    canEdit={bundle.canEdit}
+                    onChange={refresh}
+                  />
                 </dd>
               </div>
             </dl>

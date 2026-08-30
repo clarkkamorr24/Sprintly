@@ -21,7 +21,8 @@ import type { TaskCardDTO } from "@/types/dto";
 interface TaskCardProps {
   readonly task: TaskCardDTO;
   readonly onOpen: (taskId: string) => void;
-  readonly dragHandleProps?: Record<string, unknown>;
+  readonly dragProps?: Record<string, unknown>;
+  readonly keyboardDragProps?: Record<string, unknown>;
   readonly isDragging?: boolean;
   readonly menu?: React.ReactNode;
 }
@@ -29,7 +30,8 @@ interface TaskCardProps {
 export function TaskCard({
   task,
   onOpen,
-  dragHandleProps,
+  dragProps,
+  keyboardDragProps,
   isDragging,
   menu,
 }: TaskCardProps) {
@@ -37,8 +39,10 @@ export function TaskCard({
 
   return (
     <article
+      {...dragProps}
       className={cn(
-        "sp-card-hover group/task relative border border-(--sp-neutral-300) bg-(--sp-neutral-100) p-2.5 shadow-xs transition-colors",
+        "sp-card-hover group/task relative touch-none border border-(--sp-neutral-300) bg-(--sp-neutral-100) p-2.5 shadow-xs transition-colors",
+        dragProps && "cursor-grab active:cursor-grabbing",
         isDragging && "opacity-50"
       )}
     >
@@ -62,8 +66,8 @@ export function TaskCard({
           <button
             type="button"
             aria-label={`Drag ${task.title}`}
+            {...keyboardDragProps}
             className="cursor-grab touch-none p-0.5 text-[color-mix(in_srgb,var(--sp-text)_35%,transparent)] outline-none transition-colors hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 active:cursor-grabbing"
-            {...dragHandleProps}
           >
             <HugeiconsIcon icon={Menu01Icon} strokeWidth={2.5} className="size-3" />
           </button>
@@ -73,7 +77,7 @@ export function TaskCard({
       <button
         type="button"
         onClick={() => onOpen(task.id)}
-        className="mb-2 block w-full text-left text-[13.5px] font-medium leading-[1.35] text-pretty outline-none after:absolute after:inset-0 focus-visible:ring-[3px] focus-visible:ring-ring/50"
+        className="mb-2 block w-full text-left text-[13.5px] font-medium leading-[1.35] text-pretty outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
       >
         {task.title}
       </button>

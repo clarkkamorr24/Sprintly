@@ -4,8 +4,6 @@ import {
   DndContext,
   DragOverlay,
   KeyboardSensor,
-  PointerSensor,
-  TouchSensor,
   pointerWithin,
   rectIntersection,
   useSensor,
@@ -21,6 +19,7 @@ import { useCallback, useMemo, useState } from "react";
 
 import { BoardColumn } from "@/components/board/board-column";
 import { TaskCard } from "@/components/board/task-card";
+import { CardPointerSensor, CardTouchSensor } from "@/lib/dnd-sensors";
 import { useBoard } from "@/hooks/use-board";
 import type { BoardColumnDTO, SprintDTO, TaskCardDTO } from "@/types/dto";
 
@@ -59,8 +58,8 @@ export function KanbanBoard({
   const [activeTask, setActiveTask] = useState<TaskCardDTO | null>(null);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
-    useSensor(TouchSensor, {
+    useSensor(CardPointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(CardTouchSensor, {
       activationConstraint: { delay: 180, tolerance: 6 },
     }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })

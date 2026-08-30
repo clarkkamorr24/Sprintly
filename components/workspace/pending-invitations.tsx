@@ -7,8 +7,8 @@ import { toast } from "sonner";
 import { revokeInvitationAction } from "@/app/actions/invitation-actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { formatRelativeTime } from "@/lib/utils";
 import type { InvitationDTO } from "@/types/dto";
+import { RelativeTime } from "@/components/shared/relative-time";
 
 interface PendingInvitationsProps {
   readonly invitations: readonly InvitationDTO[];
@@ -57,8 +57,8 @@ export function PendingInvitations({ invitations }: PendingInvitationsProps) {
                 </p>
                 <p className="text-xs text-muted-foreground">
                   Invited by {invitation.invitedBy.name} ·{" "}
-                  {formatRelativeTime(invitation.createdAt)} · expires{" "}
-                  {formatRelativeTime(invitation.expiresAt)}
+                  <RelativeTime iso={invitation.createdAt} /> · expires{" "}
+                  <RelativeTime iso={invitation.expiresAt} />
                 </p>
               </div>
 

@@ -19,8 +19,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { WorkspaceRole } from "@/lib/generated/prisma/enums";
-import { formatRelativeTime } from "@/lib/utils";
 import type { WorkspaceMemberDTO } from "@/types/dto";
+import { RelativeTime } from "@/components/shared/relative-time";
 
 const ASSIGNABLE = [
   { value: WorkspaceRole.ADMIN, label: "Admin" },
@@ -100,7 +100,7 @@ export function MemberRow({
           ) : null}
         </p>
         <p className="truncate text-xs text-[color-mix(in_srgb,var(--sp-text)_55%,transparent)]">
-          {member.user.email} · joined {formatRelativeTime(member.joinedAt)}
+          {member.user.email} · joined <RelativeTime iso={member.joinedAt} />
         </p>
       </div>
 

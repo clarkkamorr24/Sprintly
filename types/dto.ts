@@ -154,6 +154,7 @@ export interface ActivityEntryDTO {
 export interface TaskDetailBundle {
   readonly task: TaskDetailDTO;
   readonly canEdit: boolean;
+  readonly members: readonly UserDTO[];
   readonly subtasks: readonly SubtaskDTO[];
   readonly comments: Paginated<CommentDTO>;
   readonly activity: Paginated<ActivityEntryDTO>;

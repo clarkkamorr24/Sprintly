@@ -11,13 +11,14 @@ import {
 import * as activityRepo from "@/repositories/activity-repository";
 import * as boardRepo from "@/repositories/board-repository";
 import * as repo from "@/repositories/task-repository";
+import * as workspaceRepo from "@/repositories/workspace-repository";
 import * as notificationService from "@/services/notification-service";
 import type {
   CreateTaskInput,
   DeleteTaskInput,
   UpdateTaskInput,
 } from "@/schemas/task";
-import type { TaskDetailDTO } from "@/types/dto";
+import type { TaskDetailDTO, UserDTO } from "@/types/dto";
 
 type TaskRecord = NonNullable<Awaited<ReturnType<typeof repo.findTaskById>>>;
 
@@ -254,4 +255,17 @@ export async function canViewerEditTask(taskId: string): Promise<boolean> {
     createdById: task.createdById,
     assigneeIds: task.assignees.map((a) => a.userId),
   });
+}
+
+export async function listAssignableMembers(
+  taskId: string
+): Promise<readonly UserDTO[]> {
+  const task = await repo.findTaskById(taskId);
+  if (!task) throw new NotFoundError("Task not found.");
+
+  const context = await requireProjectAccess(task.projectId);
+
+  const members = await workspaceRepo.findWorkspaceMembers(context.workspaceId);
+
+  return members.map((member) => member.user);
 }

@@ -1,11 +1,12 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { deleteTaskAction } from "@/app/actions/task-actions";
 import { CreateTaskDialog } from "@/components/board/create-task-dialog";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { KanbanBoard } from "@/components/board/kanban-board";
 import { TaskDetailDialog } from "@/components/task/task-detail-dialog";
 import { useRealtimeChannel } from "@/hooks/use-realtime-channel";
@@ -33,9 +34,36 @@ export function BoardView({
   currentUserId,
 }: BoardViewProps) {
   const router = useRouter();
-  const [, startTransition] = useTransition();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
   const [addToColumn, setAddToColumn] = useState<string | null>(null);
-  const [openTaskId, setOpenTaskId] = useState<string | null>(null);
+  const [dismissedTaskId, setDismissedTaskId] = useState<string | null>(null);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<TaskCardDTO | null>(null);
+
+  const linkedTaskId = searchParams.get("task");
+  const openTaskId =
+    selectedTaskId ??
+    (linkedTaskId && linkedTaskId !== dismissedTaskId ? linkedTaskId : null);
+
+  const closeTask = () => {
+    if (selectedTaskId) {
+      setSelectedTaskId(null);
+      return;
+    }
+
+    if (linkedTaskId) {
+      setDismissedTaskId(linkedTaskId);
+
+      const params = new URLSearchParams(searchParams);
+      params.delete("task");
+      const query = params.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname, {
+        scroll: false,
+      });
+    }
+  };
 
   useRealtimeChannel({
     channel: projectChannel(projectId),
@@ -53,7 +81,10 @@ export function BoardView({
     ),
   ].join("|");
 
-  const handleDelete = (task: TaskCardDTO) => {
+  const confirmDelete = () => {
+    const task = pendingDelete;
+    if (!task) return;
+
     startTransition(async () => {
       const result = await deleteTaskAction({ taskId: task.id });
 
@@ -62,6 +93,7 @@ export function BoardView({
         return;
       }
 
+      setPendingDelete(null);
       toast.success(`Deleted "${task.title}".`);
       router.refresh();
     });
@@ -88,9 +120,9 @@ export function BoardView({
         initialColumns={columns}
         sprints={sprints}
         canCreateTask={canCreateTask}
-        onOpenTask={(taskId) => setOpenTaskId(taskId)}
+        onOpenTask={(taskId) => setSelectedTaskId(taskId)}
         onAddTask={(columnId) => setAddToColumn(columnId)}
-        onDeleteTask={handleDelete}
+        onDeleteTask={setPendingDelete}
         onAssignSprint={handleAssignSprint}
       />
 
@@ -108,9 +140,24 @@ export function BoardView({
         taskId={openTaskId}
         canComment={canComment}
         onOpenChange={(open) => {
-          if (!open) setOpenTaskId(null);
+          if (!open) closeTask();
         }}
         onMutated={() => router.refresh()}
+      />
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title="Delete this issue?"
+        description={
+          pendingDelete
+            ? `"${pendingDelete.title}" and its comments, subtasks and activity will be permanently deleted. This cannot be undone.`
+            : ""
+        }
+        isPending={isPending}
+        onConfirm={confirmDelete}
+        onOpenChange={(open) => {
+          if (!open) setPendingDelete(null);
+        }}
       />
     </div>
   );

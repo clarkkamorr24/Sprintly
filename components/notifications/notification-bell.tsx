@@ -23,9 +23,10 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRealtimeChannel } from "@/hooks/use-realtime-channel";
 import { PAGE_SIZE } from "@/lib/constants";
-import { cn, formatRelativeTime } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { REALTIME_EVENT, userChannel } from "@/types/realtime";
 import type { NotificationDTO } from "@/types/dto";
+import { RelativeTime } from "@/components/shared/relative-time";
 
 interface NotificationBellProps {
   readonly initialUnreadCount: number;
@@ -221,7 +222,7 @@ export function NotificationBell({
                       dateTime={notification.createdAt}
                       className="text-xs text-muted-foreground"
                     >
-                      {formatRelativeTime(notification.createdAt)}
+                      <RelativeTime iso={notification.createdAt} />
                     </time>
                   </div>
 

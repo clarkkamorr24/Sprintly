@@ -3,6 +3,8 @@
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+
 import {
   createCommentAction,
   deleteCommentAction,
@@ -11,8 +13,8 @@ import {
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { formatRelativeTime } from "@/lib/utils";
 import type { CommentDTO } from "@/types/dto";
+import { RelativeTime } from "@/components/shared/relative-time";
 
 interface CommentListProps {
   readonly taskId: string;
@@ -31,6 +33,7 @@ export function CommentList({
   const [body, setBody] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editBody, setEditBody] = useState("");
+  const [pendingDelete, setPendingDelete] = useState<string | null>(null);
 
   const handleCreate = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -67,7 +70,10 @@ export function CommentList({
     });
   };
 
-  const handleDelete = (commentId: string) => {
+  const confirmDelete = () => {
+    const commentId = pendingDelete;
+    if (!commentId) return;
+
     startTransition(async () => {
       const result = await deleteCommentAction({ commentId });
 
@@ -76,6 +82,7 @@ export function CommentList({
         return;
       }
 
+      setPendingDelete(null);
       onChange();
     });
   };
@@ -105,7 +112,7 @@ export function CommentList({
                     dateTime={comment.createdAt}
                     className="text-xs text-muted-foreground"
                   >
-                    {formatRelativeTime(comment.createdAt)}
+                    <RelativeTime iso={comment.createdAt} />
                   </time>
                   {comment.editedAt ? (
                     <span className="text-xs text-muted-foreground">
@@ -166,7 +173,7 @@ export function CommentList({
                             type="button"
                             className="rounded-sm text-xs text-muted-foreground outline-none hover:text-destructive focus-visible:ring-[3px] focus-visible:ring-ring/50"
                             disabled={isPending}
-                            onClick={() => handleDelete(comment.id)}
+                            onClick={() => setPendingDelete(comment.id)}
                           >
                             Delete
                           </button>
@@ -198,6 +205,16 @@ export function CommentList({
           </div>
         </form>
       ) : null}
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title="Delete this comment?"
+        description="This comment will be permanently deleted. This cannot be undone."
+        isPending={isPending}
+        onConfirm={confirmDelete}
+        onOpenChange={(open) => {
+          if (!open) setPendingDelete(null);
+        }}
+      />
     </section>
   );
 }

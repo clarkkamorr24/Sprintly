@@ -1,5 +1,7 @@
 import { SprintStatus } from "@/lib/generated/prisma/enums";
 
+const LOCALE = "en-US";
+
 export const SPRINT_STATUS_LABEL: Readonly<Record<SprintStatus, string>> = {
   [SprintStatus.PLANNED]: "Planned",
   [SprintStatus.ACTIVE]: "Active",
@@ -21,12 +23,12 @@ export function formatDateRange(startIso: string, endIso: string): string {
 
   const sameYear = start.getFullYear() === end.getFullYear();
 
-  const startText = start.toLocaleDateString(undefined, {
+  const startText = start.toLocaleDateString(LOCALE, {
     month: "short",
     day: "numeric",
     year: sameYear ? undefined : "numeric",
   });
-  const endText = end.toLocaleDateString(undefined, {
+  const endText = end.toLocaleDateString(LOCALE, {
     month: "short",
     day: "numeric",
     year: "numeric",

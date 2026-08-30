@@ -57,15 +57,19 @@ function linkFor(
   slugByProject: ReadonlyMap<string, string>,
   inviteTokenByWorkspace: ReadonlyMap<string, string>
 ): string | null {
-  // An invitation notification must point at the accept route, not the
-  // workspace: the recipient is not a member yet, so linking straight to the
-  // workspace 404s and, for an un-onboarded user, bounces via /onboarding.
   if (
     notification.type === NotificationType.WORKSPACE_INVITATION &&
     notification.workspaceId
   ) {
     const token = inviteTokenByWorkspace.get(notification.workspaceId);
     if (token) return `/invitations/${token}`;
+  }
+
+  if (notification.taskId && notification.projectId) {
+    const slug = slugByProject.get(notification.projectId);
+    return slug
+      ? `/workspaces/${slug}/board?task=${notification.taskId}`
+      : null;
   }
 
   if (notification.projectId) {
