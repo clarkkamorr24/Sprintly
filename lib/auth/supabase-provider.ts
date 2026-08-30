@@ -10,6 +10,7 @@ const userSelect = {
   email: true,
   name: true,
   avatarUrl: true,
+  onboardedAt: true,
 } as const;
 
 function displayNameFrom(
@@ -39,10 +40,23 @@ export const supabaseAuthProvider: AuthProvider = {
     const avatarUrl =
       typeof metadata.avatar_url === "string" ? metadata.avatar_url : null;
 
-    const existing = await db.user.findUnique({
-      where: { id: user.id },
-      select: { id: true },
-    });
+    const [byId, byEmail] = await Promise.all([
+      db.user.findUnique({ where: { id: user.id }, select: { id: true } }),
+      db.user.findUnique({ where: { email }, select: { id: true } }),
+    ]);
+
+    // The same email can come back under a new auth id if the account was
+    // deleted and recreated in the auth provider. Rebinding the existing row to
+    // the new id keeps the user's workspaces and history instead of colliding
+    // on the email unique constraint.
+    if (!byId && byEmail) {
+      await db.user.update({
+        where: { email },
+        data: { id: user.id, avatarUrl },
+      });
+    }
+
+    const existing = byId ?? byEmail;
 
     const profile = await db.user.upsert({
       where: { id: user.id },
@@ -64,6 +78,12 @@ export const supabaseAuthProvider: AuthProvider = {
       });
     }
 
-    return profile;
+    return {
+      id: profile.id,
+      email: profile.email,
+      name: profile.name,
+      avatarUrl: profile.avatarUrl,
+      hasOnboarded: profile.onboardedAt !== null,
+    };
   },
 };

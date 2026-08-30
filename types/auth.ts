@@ -5,6 +5,7 @@ export interface SessionUser {
   readonly email: string;
   readonly name: string;
   readonly avatarUrl: string | null;
+  readonly hasOnboarded: boolean;
 }
 
 export interface WorkspaceContext {

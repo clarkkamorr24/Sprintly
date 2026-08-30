@@ -177,3 +177,16 @@
     background: color-mix(in srgb, var(--sp-text) 4%, transparent);
   }
 }
+
+/* Utility classes set animation/transition durations inline, so overriding
+   them for reduced-motion users needs !important. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

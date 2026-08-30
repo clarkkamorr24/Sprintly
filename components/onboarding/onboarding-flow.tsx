@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
+import { completeOnboardingAction } from "@/app/actions/onboarding-actions";
 import { inviteMemberAction } from "@/app/actions/invitation-actions";
 import { createProjectAction } from "@/app/actions/project-actions";
 import { updateWorkspaceAction } from "@/app/actions/workspace-actions";
@@ -23,6 +24,32 @@ interface OnboardingFlowProps {
   readonly workspaceName: string;
 }
 
+interface StepProps {
+  readonly title: string;
+  readonly description: string;
+  readonly direction: 1 | -1;
+  readonly children?: React.ReactNode;
+  readonly actions: React.ReactNode;
+}
+
+function Step({ title, description, direction, children, actions }: StepProps) {
+  return (
+    <div
+      className={cn(
+        "animate-in fade-in duration-200 ease-out",
+        direction === 1 ? "slide-in-from-right-3" : "slide-in-from-left-3"
+      )}
+    >
+      <h1 className="mb-1 text-[25px]">{title}</h1>
+      <p className="mb-4.5 text-[13px] text-[color-mix(in_srgb,var(--sp-text)_65%,transparent)]">
+        {description}
+      </p>
+      {children}
+      <div className="flex gap-2">{actions}</div>
+    </div>
+  );
+}
+
 export function OnboardingFlow({
   userName,
   workspaceId,
@@ -32,14 +59,29 @@ export function OnboardingFlow({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [step, setStep] = useState(0);
+  const [direction, setDirection] = useState<1 | -1>(1);
   const [name, setName] = useState(workspaceName);
   const [projectName, setProjectName] = useState("");
   const [emails, setEmails] = useState("");
   const [error, setError] = useState<string | null>(null);
 
+  const goTo = (next: number) => {
+    setDirection(next > step ? 1 : -1);
+    setStep(next);
+  };
+
   const finish = () => {
-    router.push(`/workspaces/${workspaceSlug}`);
-    router.refresh();
+    startTransition(async () => {
+      const result = await completeOnboardingAction();
+
+      if (!result.success) {
+        setError(result.error.message);
+        return;
+      }
+
+      router.replace(`/workspaces/${workspaceSlug}`);
+      router.refresh();
+    });
   };
 
   const saveWorkspace = () => {
@@ -56,14 +98,14 @@ export function OnboardingFlow({
         return;
       }
 
-      setStep(2);
+      goTo(2);
     });
   };
 
   const createProject = () => {
     const trimmed = projectName.trim();
     if (!trimmed) {
-      setStep(3);
+      goTo(3);
       return;
     }
 
@@ -81,7 +123,7 @@ export function OnboardingFlow({
         return;
       }
 
-      setStep(3);
+      goTo(3);
     });
   };
 
@@ -112,12 +154,13 @@ export function OnboardingFlow({
       if (sent > 0) {
         toast.success(`Sent ${sent} ${sent === 1 ? "invite" : "invites"}.`);
       }
+
       finish();
     });
   };
 
   return (
-    <div className="w-full max-w-[460px]">
+    <div className="w-full max-w-[460px] animate-in fade-in slide-in-from-bottom-2 duration-300 ease-out">
       <div className="mb-5.5 flex items-center gap-2">
         <span aria-hidden className="block size-5 bg-(--sp-accent)" />
         <span className="text-[18px] font-extrabold tracking-[-0.02em]">
@@ -134,35 +177,63 @@ export function OnboardingFlow({
             </span>
             <span
               aria-hidden
-              className={cn(
-                "block h-1",
-                index <= step ? "bg-(--sp-accent)" : "bg-(--sp-neutral-300)"
-              )}
-            />
+              className="block h-1 overflow-hidden bg-(--sp-neutral-300)"
+            >
+              <span
+                className={cn(
+                  "block h-full origin-left bg-(--sp-accent) transition-transform duration-300 ease-out",
+                  index <= step ? "scale-x-100" : "scale-x-0"
+                )}
+              />
+            </span>
           </li>
         ))}
       </ol>
 
       <div className="border border-(--sp-neutral-300) bg-(--sp-neutral-100) p-5.5">
         {step === 0 ? (
-          <>
-            <h1 className="mb-1 text-[25px]">Welcome to Sprintly</h1>
-            <p className="mb-4.5 text-[13px] text-[color-mix(in_srgb,var(--sp-text)_65%,transparent)]">
-              Hi {userName.split(" ")[0]} — let&apos;s set up your workspace. It
-              takes about a minute.
-            </p>
-            <Button className="w-full justify-center" onClick={() => setStep(1)}>
-              Get started
-            </Button>
-          </>
+          <Step
+            key="welcome"
+            title="Welcome to Sprintly"
+            direction={direction}
+            description={`Hi ${userName.split(" ")[0]} — let's set up your workspace. It takes about a minute.`}
+            actions={
+              <Button
+                className="w-full justify-center"
+                onClick={() => goTo(1)}
+              >
+                Get started
+              </Button>
+            }
+          />
         ) : null}
 
         {step === 1 ? (
-          <>
-            <h1 className="mb-1 text-[25px]">Name your workspace</h1>
-            <p className="mb-4.5 text-[13px] text-[color-mix(in_srgb,var(--sp-text)_65%,transparent)]">
-              A workspace holds your projects, sprints and team.
-            </p>
+          <Step
+            key="workspace"
+            title="Name your workspace"
+            direction={direction}
+            description="A workspace holds your projects, sprints and team."
+            actions={
+              <>
+                <Button
+                  variant="outline"
+                  className="flex-1 justify-center"
+                  onClick={() => goTo(2)}
+                  disabled={isPending}
+                >
+                  Skip
+                </Button>
+                <Button
+                  className="flex-1 justify-center"
+                  onClick={saveWorkspace}
+                  disabled={isPending || !name.trim()}
+                >
+                  {isPending ? "Saving…" : "Continue"}
+                </Button>
+              </>
+            }
+          >
             <div className="mb-4 space-y-2">
               <Label htmlFor="ws-name">Workspace name</Label>
               <Input
@@ -173,32 +244,35 @@ export function OnboardingFlow({
                 disabled={isPending}
               />
             </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                className="flex-1 justify-center"
-                onClick={() => setStep(2)}
-                disabled={isPending}
-              >
-                Skip
-              </Button>
-              <Button
-                className="flex-1 justify-center"
-                onClick={saveWorkspace}
-                disabled={isPending || !name.trim()}
-              >
-                {isPending ? "Saving…" : "Continue"}
-              </Button>
-            </div>
-          </>
+          </Step>
         ) : null}
 
         {step === 2 ? (
-          <>
-            <h1 className="mb-1 text-[25px]">Create your first project</h1>
-            <p className="mb-4.5 text-[13px] text-[color-mix(in_srgb,var(--sp-text)_65%,transparent)]">
-              Projects get a Kanban board with default columns.
-            </p>
+          <Step
+            key="project"
+            title="Create your first project"
+            direction={direction}
+            description="Projects get a Kanban board with default columns."
+            actions={
+              <>
+                <Button
+                  variant="outline"
+                  className="flex-1 justify-center"
+                  onClick={() => goTo(3)}
+                  disabled={isPending}
+                >
+                  Skip
+                </Button>
+                <Button
+                  className="flex-1 justify-center"
+                  onClick={createProject}
+                  disabled={isPending}
+                >
+                  {isPending ? "Creating…" : "Continue"}
+                </Button>
+              </>
+            }
+          >
             <div className="mb-4 space-y-2">
               <Label htmlFor="project-name">Project name</Label>
               <Input
@@ -209,33 +283,35 @@ export function OnboardingFlow({
                 disabled={isPending}
               />
             </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                className="flex-1 justify-center"
-                onClick={() => setStep(3)}
-                disabled={isPending}
-              >
-                Skip
-              </Button>
-              <Button
-                className="flex-1 justify-center"
-                onClick={createProject}
-                disabled={isPending}
-              >
-                {isPending ? "Creating…" : "Continue"}
-              </Button>
-            </div>
-          </>
+          </Step>
         ) : null}
 
         {step === 3 ? (
-          <>
-            <h1 className="mb-1 text-[25px]">Invite your team</h1>
-            <p className="mb-4.5 text-[13px] text-[color-mix(in_srgb,var(--sp-text)_65%,transparent)]">
-              Add teammate emails, separated by commas. You can always do this
-              later.
-            </p>
+          <Step
+            key="invite"
+            title="Invite your team"
+            direction={direction}
+            description="Add teammate emails, separated by commas. You can always do this later."
+            actions={
+              <>
+                <Button
+                  variant="outline"
+                  className="flex-1 justify-center"
+                  onClick={finish}
+                  disabled={isPending}
+                >
+                  Skip
+                </Button>
+                <Button
+                  className="flex-1 justify-center"
+                  onClick={sendInvites}
+                  disabled={isPending}
+                >
+                  {isPending ? "Sending…" : "Finish"}
+                </Button>
+              </>
+            }
+          >
             <div className="mb-4 space-y-2">
               <Label htmlFor="invite-emails">Emails</Label>
               <Input
@@ -246,28 +322,14 @@ export function OnboardingFlow({
                 disabled={isPending}
               />
             </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                className="flex-1 justify-center"
-                onClick={finish}
-                disabled={isPending}
-              >
-                Skip
-              </Button>
-              <Button
-                className="flex-1 justify-center"
-                onClick={sendInvites}
-                disabled={isPending}
-              >
-                {isPending ? "Sending…" : "Finish"}
-              </Button>
-            </div>
-          </>
+          </Step>
         ) : null}
 
         {error ? (
-          <p role="alert" className="mt-4 text-sm text-(--sp-accent-700)">
+          <p
+            role="alert"
+            className="mt-4 animate-in fade-in text-sm text-(--sp-accent-700) duration-150"
+          >
             {error}
           </p>
         ) : null}

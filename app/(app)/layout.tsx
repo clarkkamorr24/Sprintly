@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+
 import { AppHeader } from "@/components/shared/app-header";
 import { MobileNavProvider } from "@/components/shared/mobile-nav-context";
 import { AppSidebar } from "@/components/shared/app-sidebar";
@@ -14,6 +16,8 @@ export const dynamic = "force-dynamic";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const user = await requireUserOrRedirect();
+
+  if (!user.hasOnboarded) redirect("/onboarding");
 
   const [workspaces, unreadCount] = await Promise.all([
     listWorkspaces(),

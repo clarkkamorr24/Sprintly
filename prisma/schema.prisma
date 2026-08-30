@@ -86,12 +86,13 @@ enum NotificationType {
 }
 
 model User {
-  id        String   @id @default(uuid()) @db.Uuid
-  email     String   @unique
-  name      String
-  avatarUrl String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String    @id @default(uuid()) @db.Uuid
+  email       String    @unique
+  name        String
+  avatarUrl   String?
+  onboardedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   workspaceMemberships   WorkspaceMember[]
   projectMemberships     ProjectMember[]
@@ -108,6 +109,7 @@ model User {
   sentInvitations        WorkspaceInvitation[] @relation("InvitationInviter")
 
   @@index([email])
+  @@map("user")
 }
 
 model Workspace {
@@ -130,6 +132,7 @@ model Workspace {
 
   @@index([createdById])
   @@index([slug])
+  @@map("workspace")
 }
 
 model WorkspaceMember {
@@ -145,6 +148,7 @@ model WorkspaceMember {
   @@unique([workspaceId, userId])
   @@index([userId])
   @@index([workspaceId, role])
+  @@map("workspace_member")
 }
 
 model Project {
@@ -171,6 +175,7 @@ model Project {
   @@unique([workspaceId, key])
   @@index([workspaceId, status])
   @@index([createdById])
+  @@map("project")
 }
 
 model ProjectMember {
@@ -184,6 +189,7 @@ model ProjectMember {
 
   @@unique([projectId, userId])
   @@index([userId])
+  @@map("project_member")
 }
 
 model BoardColumn {
@@ -199,6 +205,7 @@ model BoardColumn {
   tasks   Task[]
 
   @@index([projectId, position])
+  @@map("board_column")
 }
 
 model Task {
@@ -236,6 +243,7 @@ model Task {
   @@index([dueDate])
   @@index([createdById])
   @@index([sprintId])
+  @@map("task")
 }
 
 model Sprint {
@@ -255,6 +263,7 @@ model Sprint {
   @@unique([projectId, name])
   @@index([projectId, status])
   @@index([projectId, startDate])
+  @@map("sprint")
 }
 
 model TaskAssignee {
@@ -268,6 +277,7 @@ model TaskAssignee {
 
   @@unique([taskId, userId])
   @@index([userId])
+  @@map("task_assignee")
 }
 
 model Subtask {
@@ -286,6 +296,7 @@ model Subtask {
 
   @@index([taskId, position])
   @@index([assigneeId])
+  @@map("subtask")
 }
 
 model Label {
@@ -300,6 +311,7 @@ model Label {
 
   @@unique([workspaceId, name])
   @@index([workspaceId])
+  @@map("label")
 }
 
 model TaskLabel {
@@ -311,6 +323,7 @@ model TaskLabel {
 
   @@id([taskId, labelId])
   @@index([labelId])
+  @@map("task_label")
 }
 
 model Comment {
@@ -327,6 +340,7 @@ model Comment {
 
   @@index([taskId, createdAt])
   @@index([authorId])
+  @@map("comment")
 }
 
 model Attachment {
@@ -344,6 +358,7 @@ model Attachment {
 
   @@index([taskId])
   @@index([uploadedById])
+  @@map("attachment")
 }
 
 model ActivityLog {
@@ -365,6 +380,7 @@ model ActivityLog {
   @@index([projectId, createdAt])
   @@index([taskId, createdAt])
   @@index([actorId])
+  @@map("activity_log")
 }
 
 model Notification {
@@ -385,6 +401,7 @@ model Notification {
 
   @@index([recipientId, readAt, createdAt])
   @@index([recipientId, createdAt])
+  @@map("notification")
 }
 
 model WorkspaceInvitation {
@@ -405,4 +422,5 @@ model WorkspaceInvitation {
   @@unique([workspaceId, email, status])
   @@index([email, status])
   @@index([token])
+  @@map("workspace_invitation")
 }
