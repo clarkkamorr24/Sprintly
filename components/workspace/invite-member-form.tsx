@@ -34,11 +34,16 @@ export function InviteMemberForm({ workspaceId }: InviteMemberFormProps) {
   const [role, setRole] = useState<string>(WorkspaceRole.MEMBER);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
+  const [manualLink, setManualLink] = useState<{
+    email: string;
+    url: string;
+  } | null>(null);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setFieldErrors({});
     setFormError(null);
+    setManualLink(null);
 
     startTransition(async () => {
       const result = await inviteMemberAction({ workspaceId, email, role });
@@ -49,7 +54,15 @@ export function InviteMemberForm({ workspaceId }: InviteMemberFormProps) {
         return;
       }
 
-      toast.success(`Invitation sent to ${result.data.email}.`);
+      const { invitation, emailSent, invitationUrl } = result.data;
+
+      if (emailSent) {
+        toast.success(`Invitation sent to ${invitation.email}.`);
+      } else {
+        setManualLink({ email: invitation.email, url: invitationUrl });
+        toast.warning(`Invitation created, but the email could not be sent.`);
+      }
+
       setEmail("");
       router.refresh();
     });
@@ -114,6 +127,21 @@ export function InviteMemberForm({ workspaceId }: InviteMemberFormProps) {
         <p role="alert" className="w-full text-sm text-destructive">
           {formError}
         </p>
+      ) : null}
+
+      {manualLink ? (
+        <div role="status" className="w-full space-y-1.5 border border-(--sp-neutral-300) bg-(--sp-neutral-100) p-3">
+          <p className="text-sm font-semibold">
+            Could not email {manualLink.email}
+          </p>
+          <p className="text-[13px] text-[color-mix(in_srgb,var(--sp-text)_65%,transparent)]">
+            The invitation is saved and still valid. Share this link with them
+            directly:
+          </p>
+          <code className="block overflow-x-auto text-[12px] break-all">
+            {manualLink.url}
+          </code>
+        </div>
       ) : null}
     </form>
   );

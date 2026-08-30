@@ -110,3 +110,10 @@ export function findUserByEmail(email: string) {
     select: { id: true },
   });
 }
+
+export function findPendingTokensForEmail(email: string) {
+  return db.workspaceInvitation.findMany({
+    where: { email, status: "PENDING", expiresAt: { gt: new Date() } },
+    select: { workspaceId: true, token: true },
+  });
+}

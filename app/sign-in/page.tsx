@@ -17,6 +17,13 @@ function single(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function invitedEmail(value: string | undefined): string | undefined {
+  const email = value?.trim().toLowerCase();
+  return email && EMAIL_PATTERN.test(email) ? email : undefined;
+}
+
 function safeNext(value: string | undefined): string {
   if (!value || !value.startsWith("/") || value.startsWith("//")) return "/";
   return value;
@@ -37,7 +44,10 @@ export default async function SignInPage(props: PageProps<"/sign-in">) {
         </p>
       ) : null}
 
-      <SignInForm next={safeNext(single(searchParams.next))} />
+      <SignInForm
+        next={safeNext(single(searchParams.next))}
+        lockedEmail={invitedEmail(single(searchParams.email))}
+      />
     </AuthShell>
   );
 }

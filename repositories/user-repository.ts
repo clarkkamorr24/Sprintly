@@ -8,3 +8,10 @@ export function markOnboarded(userId: string) {
     data: { onboardedAt: new Date() },
   });
 }
+
+export function findUserByEmail(email: string) {
+  return db.user.findUnique({
+    where: { email },
+    select: { id: true },
+  });
+}

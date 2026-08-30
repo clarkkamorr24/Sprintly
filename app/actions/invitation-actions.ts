@@ -10,11 +10,11 @@ import {
   revokeInvitationSchema,
 } from "@/schemas/workspace";
 import type { ApiResponse } from "@/types/api";
-import type { InvitationDTO } from "@/types/dto";
+import type { InviteMemberResultDTO } from "@/types/dto";
 
 export async function inviteMemberAction(
   input: unknown
-): Promise<ApiResponse<InvitationDTO>> {
+): Promise<ApiResponse<InviteMemberResultDTO>> {
   return handleAction("inviteMemberAction", async () => {
     const data = parseInput(inviteMemberSchema, input);
     const invitation = await invitationService.inviteMember(data);

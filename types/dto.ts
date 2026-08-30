@@ -212,6 +212,12 @@ export interface SprintDTO {
   readonly completedCount: number;
 }
 
+export interface InviteMemberResultDTO {
+  readonly invitation: InvitationDTO;
+  readonly emailSent: boolean;
+  readonly invitationUrl: string;
+}
+
 export interface InvitationDTO {
   readonly id: string;
   readonly email: string;

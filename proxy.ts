@@ -3,7 +3,8 @@ import { createServerClient } from "@supabase/ssr";
 
 import { PATHNAME_HEADER } from "@/lib/constants";
 
-const PUBLIC_ROUTES = ["/sign-in", "/sign-up", "/auth"];
+
+const PUBLIC_ROUTES = ["/sign-in", "/sign-up", "/auth", "/invitations"];
 
 export async function proxy(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl;
@@ -47,7 +48,10 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     pathname.startsWith("/sign-in") || pathname.startsWith("/sign-up");
 
   if (user && isAuthEntry) {
-    return NextResponse.redirect(new URL("/", request.url));
+    const next = request.nextUrl.searchParams.get("next");
+    const target = next && next.startsWith("/") && !next.startsWith("//") ? next : "/";
+
+    return NextResponse.redirect(new URL(target, request.url));
   }
 
   return response;

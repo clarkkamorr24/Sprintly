@@ -19,14 +19,17 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 interface SignInFormProps {
   readonly next: string;
+  readonly lockedEmail?: string;
 }
 
-export function SignInForm({ next }: SignInFormProps) {
+export function SignInForm({ next, lockedEmail }: SignInFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  const [step, setStep] = useState<"email" | "password">("email");
-  const [email, setEmail] = useState("");
+  const [step, setStep] = useState<"email" | "password">(
+    lockedEmail ? "password" : "email"
+  );
+  const [email, setEmail] = useState(lockedEmail ?? "");
   const [password, setPassword] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -98,7 +101,11 @@ export function SignInForm({ next }: SignInFormProps) {
     <p className="mt-4 text-[13px] text-[color-mix(in_srgb,var(--sp-text)_65%,transparent)]">
       Don&apos;t have an account?{" "}
       <Link
-        href="/sign-up"
+        href={
+          lockedEmail
+            ? `/sign-up?${new URLSearchParams({ next, email: lockedEmail })}`
+            : "/sign-up"
+        }
         className="font-extrabold text-(--sp-accent) underline-offset-4 outline-none hover:underline focus-visible:ring-[3px] focus-visible:ring-ring/50"
       >
         Sign up
@@ -148,17 +155,19 @@ export function SignInForm({ next }: SignInFormProps) {
         <span className="min-w-0 flex-1 truncate text-[13px] font-semibold">
           {email}
         </span>
-        <Button
-          type="button"
-          variant="ghost"
-          size="xs"
-          onClick={backToEmail}
-          disabled={isPending}
-          className="gap-1 text-(--sp-accent)"
-        >
-          <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={2.5} className="size-3" />
-          Back
-        </Button>
+        {lockedEmail ? null : (
+          <Button
+            type="button"
+            variant="ghost"
+            size="xs"
+            onClick={backToEmail}
+            disabled={isPending}
+            className="gap-1 text-(--sp-accent)"
+          >
+            <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={2.5} className="size-3" />
+            Back
+          </Button>
+        )}
       </div>
 
       <form onSubmit={submitPassword} noValidate className="space-y-4">

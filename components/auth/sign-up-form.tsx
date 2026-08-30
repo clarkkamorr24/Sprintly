@@ -12,9 +12,10 @@ import type { FieldErrors } from "@/types/api";
 
 interface SignUpFormProps {
   readonly next: string;
+  readonly lockedEmail?: string;
 }
 
-export function SignUpForm({ next }: SignUpFormProps) {
+export function SignUpForm({ next, lockedEmail }: SignUpFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -26,7 +27,7 @@ export function SignUpForm({ next }: SignUpFormProps) {
     if (isPending) return;
 
     const formData = new FormData(event.currentTarget);
-    const email = String(formData.get("email") ?? "");
+    const email = lockedEmail ?? String(formData.get("email") ?? "");
 
     setFieldErrors({});
     setFormError(null);
@@ -102,10 +103,22 @@ export function SignUpForm({ next }: SignUpFormProps) {
             type="email"
             autoComplete="email"
             placeholder="your@email.com"
+            defaultValue={lockedEmail}
+            readOnly={lockedEmail !== undefined}
+            aria-readonly={lockedEmail !== undefined || undefined}
+            aria-describedby={lockedEmail ? "email-locked" : undefined}
             aria-invalid={fieldErrors.email ? true : undefined}
             disabled={isPending}
             required
           />
+          {lockedEmail ? (
+            <p
+              id="email-locked"
+              className="text-[12px] text-[color-mix(in_srgb,var(--sp-text)_60%,transparent)]"
+            >
+              This invitation was sent to {lockedEmail}.
+            </p>
+          ) : null}
           {fieldErrors.email ? (
             <p role="alert" className="text-sm text-(--sp-accent-700)">
               {fieldErrors.email[0]}

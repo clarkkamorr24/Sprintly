@@ -2,7 +2,9 @@ import "server-only";
 
 import { requireUser } from "@/lib/auth/session";
 import { NotFoundError } from "@/lib/errors";
+import { NotificationType } from "@/lib/generated/prisma/enums";
 import { broadcastNotificationCreated } from "@/lib/realtime/server";
+import * as invitationRepo from "@/repositories/invitation-repository";
 import * as repo from "@/repositories/notification-repository";
 import * as workspaceRepo from "@/repositories/workspace-repository";
 import type {
@@ -39,11 +41,33 @@ async function workspaceSlugsByProject(
   return new Map(projects.map((p) => [p.id, p.workspace.slug]));
 }
 
+async function pendingInviteTokens(
+  email: string
+): Promise<ReadonlyMap<string, string>> {
+  const pending = await invitationRepo.findPendingTokensForEmail(
+    email.toLowerCase()
+  );
+
+  return new Map(pending.map((i) => [i.workspaceId, i.token]));
+}
+
 function linkFor(
   notification: NotificationRecord,
   slugByWorkspace: ReadonlyMap<string, string>,
-  slugByProject: ReadonlyMap<string, string>
+  slugByProject: ReadonlyMap<string, string>,
+  inviteTokenByWorkspace: ReadonlyMap<string, string>
 ): string | null {
+  // An invitation notification must point at the accept route, not the
+  // workspace: the recipient is not a member yet, so linking straight to the
+  // workspace 404s and, for an un-onboarded user, bounces via /onboarding.
+  if (
+    notification.type === NotificationType.WORKSPACE_INVITATION &&
+    notification.workspaceId
+  ) {
+    const token = inviteTokenByWorkspace.get(notification.workspaceId);
+    if (token) return `/invitations/${token}`;
+  }
+
   if (notification.projectId) {
     const slug = slugByProject.get(notification.projectId);
     return slug ? `/workspaces/${slug}/board` : null;
@@ -60,7 +84,8 @@ function linkFor(
 function toNotificationDTO(
   notification: NotificationRecord,
   slugByWorkspace: ReadonlyMap<string, string>,
-  slugByProject: ReadonlyMap<string, string>
+  slugByProject: ReadonlyMap<string, string>,
+  inviteTokenByWorkspace: ReadonlyMap<string, string>
 ): NotificationDTO {
   return {
     id: notification.id,
@@ -70,7 +95,12 @@ function toNotificationDTO(
     actor: notification.actor,
     isRead: notification.readAt !== null,
     createdAt: notification.createdAt.toISOString(),
-    href: linkFor(notification, slugByWorkspace, slugByProject),
+    href: linkFor(
+      notification,
+      slugByWorkspace,
+      slugByProject,
+      inviteTokenByWorkspace
+    ),
   };
 }
 
@@ -89,7 +119,11 @@ export async function listNotifications(
     repo.countNotifications(user.id, input.unreadOnly),
   ]);
 
-  const [slugByWorkspace, slugByProject] = await Promise.all([
+  const hasInvitation = notifications.some(
+    (n) => n.type === NotificationType.WORKSPACE_INVITATION
+  );
+
+  const [slugByWorkspace, slugByProject, inviteTokenByWorkspace] = await Promise.all([
     workspaceSlugsById(
       notifications
         .map((notification) => notification.workspaceId)
@@ -100,11 +134,19 @@ export async function listNotifications(
         .map((notification) => notification.projectId)
         .filter((id): id is string => id !== null)
     ),
+    hasInvitation
+      ? pendingInviteTokens(user.email)
+      : Promise.resolve<ReadonlyMap<string, string>>(new Map()),
   ]);
 
   return {
     items: notifications.map((notification) =>
-      toNotificationDTO(notification, slugByWorkspace, slugByProject)
+      toNotificationDTO(
+        notification,
+        slugByWorkspace,
+        slugByProject,
+        inviteTokenByWorkspace
+      )
     ),
     total,
     page: input.page,

@@ -2,6 +2,7 @@ import "server-only";
 
 import { db } from "@/lib/db";
 import { ActivityType, WorkspaceRole } from "@/lib/generated/prisma/enums";
+import * as userRepo from "@/repositories/user-repository";
 
 const DEFAULT_LABELS = [
   { name: "bug", color: "#ec3013" },
@@ -97,7 +98,14 @@ export async function provisionNewUser(input: {
     where: { userId: input.userId },
   });
 
-  if (existing > 0 || accepted > 0) return;
+  if (existing > 0 || accepted > 0) {
+    // Someone who joined through an invitation lands in a workspace that is
+    // already set up, and the onboarding flow only makes sense for an owner
+    // configuring their own, so skip it for them.
+    await userRepo.markOnboarded(input.userId);
+
+    return;
+  }
 
   const name = possessive(input.name);
 

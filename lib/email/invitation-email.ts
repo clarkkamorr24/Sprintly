@@ -17,9 +17,26 @@ export interface InvitationEmailInput {
   readonly inviterName: string;
 }
 
+export type InvitationEmailResult =
+  | { readonly sent: true }
+  | { readonly sent: false; readonly reason: "unconfigured" | "rate_limited" | "failed" };
+
+function classify(message: string): "rate_limited" | "failed" {
+  return /rate limit/i.test(message) ? "rate_limited" : "failed";
+}
+
+/**
+ * Sends the invitation through Supabase Auth: `inviteUserByEmail` for an
+ * address with no account, and a magic link for one that already has one,
+ * since Supabase refuses to invite an existing user. Both carry the same
+ * invitation URL as the redirect target.
+ *
+ * Returns whether the email actually went out so the caller can tell the
+ * inviter to share the link manually instead of silently reporting success.
+ */
 export async function sendInvitationEmail(
   input: InvitationEmailInput
-): Promise<void> {
+): Promise<InvitationEmailResult> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const link = invitationUrl(input.token);
@@ -28,7 +45,7 @@ export async function sendInvitationEmail(
     console.warn(
       `[invitation] Email not configured. Share this link with ${input.email}: ${link}`
     );
-    return;
+    return { sent: false, reason: "unconfigured" };
   }
 
   const admin = createClient(url, serviceKey, {
@@ -43,7 +60,7 @@ export async function sendInvitationEmail(
     },
   });
 
-  if (!error) return;
+  if (!error) return { sent: true };
 
   const alreadyRegistered = /already been registered|already exists/i.test(
     error.message
@@ -55,13 +72,12 @@ export async function sendInvitationEmail(
       options: { emailRedirectTo: link },
     });
 
-    if (!linkError) return;
+    if (!linkError) return { sent: true };
+
     console.error("[invitation] magic link failed:", linkError.message);
-  } else {
-    console.error("[invitation] invite failed:", error.message);
+    return { sent: false, reason: classify(linkError.message) };
   }
 
-  console.warn(
-    `[invitation] Could not email ${input.email}. Share this link manually: ${link}`
-  );
+  console.error("[invitation] invite failed:", error.message);
+  return { sent: false, reason: classify(error.message) };
 }
