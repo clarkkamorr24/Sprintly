@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Copy01Icon, Tick02Icon } from "@hugeicons/core-free-icons";
 
 import { inviteMemberAction } from "@/app/actions/invitation-actions";
 import { Button } from "@/components/ui/button";
@@ -38,12 +40,27 @@ export function InviteMemberForm({ workspaceId }: InviteMemberFormProps) {
     email: string;
     url: string;
   } | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const copyLink = async () => {
+    if (!manualLink) return;
+
+    try {
+      await navigator.clipboard.writeText(manualLink.url);
+      setCopied(true);
+      toast.success("Invitation link copied.");
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Could not copy. Check your browser's clipboard permission.");
+    }
+  };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setFieldErrors({});
     setFormError(null);
     setManualLink(null);
+    setCopied(false);
 
     startTransition(async () => {
       const result = await inviteMemberAction({ workspaceId, email, role });
@@ -130,17 +147,34 @@ export function InviteMemberForm({ workspaceId }: InviteMemberFormProps) {
       ) : null}
 
       {manualLink ? (
-        <div role="status" className="w-full space-y-1.5 border border-(--sp-neutral-300) bg-(--sp-neutral-100) p-3">
-          <p className="text-sm font-semibold">
-            Could not email {manualLink.email}
-          </p>
-          <p className="text-[13px] text-[color-mix(in_srgb,var(--sp-text)_65%,transparent)]">
-            The invitation is saved and still valid. Share this link with them
-            directly:
-          </p>
-          <code className="block overflow-x-auto text-[12px] break-all">
-            {manualLink.url}
-          </code>
+        <div
+          role="status"
+          className="flex w-full flex-wrap items-center gap-3 border border-(--sp-neutral-300) bg-(--sp-neutral-100) p-3"
+        >
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold">
+              Could not email {manualLink.email}
+            </p>
+            <p className="text-[13px] text-[color-mix(in_srgb,var(--sp-text)_65%,transparent)]">
+              The invitation is saved and still valid. Copy the link and send it
+              to them directly.
+            </p>
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={copyLink}
+            className="shrink-0 gap-1.5"
+          >
+            <HugeiconsIcon
+              icon={copied ? Tick02Icon : Copy01Icon}
+              strokeWidth={2}
+              className="size-[15px]"
+            />
+            {copied ? "Copied" : "Copy link"}
+          </Button>
         </div>
       ) : null}
     </form>
