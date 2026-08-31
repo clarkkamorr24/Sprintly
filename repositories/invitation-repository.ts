@@ -39,7 +39,7 @@ export function findInvitationById(invitationId: string) {
   });
 }
 
-export function upsertInvitation(input: {
+export async function upsertInvitation(input: {
   workspaceId: string;
   email: string;
   role: WorkspaceRole;
@@ -47,21 +47,31 @@ export function upsertInvitation(input: {
   invitedById: string;
   expiresAt: Date;
 }) {
-  return db.workspaceInvitation.upsert({
+ 
+  const pending = await db.workspaceInvitation.findFirst({
     where: {
-      workspaceId_email_status: {
-        workspaceId: input.workspaceId,
-        email: input.email,
-        status: "PENDING",
+      workspaceId: input.workspaceId,
+      email: input.email,
+      status: "PENDING",
+    },
+    select: { id: true },
+  });
+
+  if (pending) {
+    return db.workspaceInvitation.update({
+      where: { id: pending.id },
+      data: {
+        role: input.role,
+        token: input.token,
+        invitedById: input.invitedById,
+        expiresAt: input.expiresAt,
       },
-    },
-    update: {
-      role: input.role,
-      token: input.token,
-      invitedById: input.invitedById,
-      expiresAt: input.expiresAt,
-    },
-    create: { ...input, status: "PENDING" },
+      select: invitationSelect,
+    });
+  }
+
+  return db.workspaceInvitation.create({
+    data: { ...input, status: "PENDING" },
     select: invitationSelect,
   });
 }

@@ -419,7 +419,7 @@ model WorkspaceInvitation {
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   invitedBy User      @relation("InvitationInviter", fields: [invitedById], references: [id], onDelete: Cascade)
 
-  @@unique([workspaceId, email, status])
+  @@index([workspaceId, email, status])
   @@index([email, status])
   @@index([token])
   @@map("workspace_invitation")
