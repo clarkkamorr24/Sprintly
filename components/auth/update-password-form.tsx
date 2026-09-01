@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { updatePasswordAction } from "@/app/actions/auth-actions";
+import { PasswordChecklist } from "@/components/auth/password-checklist";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,13 +16,14 @@ export function UpdatePasswordForm() {
   const [isPending, startTransition] = useTransition();
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
+  const [password, setPassword] = useState("");
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (isPending) return;
 
     const formData = new FormData(event.currentTarget);
-    const password = String(formData.get("password") ?? "");
+
     const confirm = String(formData.get("confirm") ?? "");
 
     setFieldErrors({});
@@ -57,11 +59,17 @@ export function UpdatePasswordForm() {
           type="password"
           autoComplete="new-password"
           autoFocus
-          placeholder="At least 8 characters"
+          placeholder="Choose a strong password"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          aria-describedby="new-password-requirements"
           aria-invalid={fieldErrors.password ? true : undefined}
           disabled={isPending}
           required
         />
+
+        <PasswordChecklist id="new-password-requirements" value={password} />
+
         {fieldErrors.password ? (
           <p role="alert" className="text-sm text-(--sp-accent-700)">
             {fieldErrors.password[0]}

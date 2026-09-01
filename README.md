@@ -15,8 +15,14 @@ the address visible. The first step never checks whether an account exists, and
 a wrong password and an unknown address give the same message, so the form
 cannot be used to discover who has an account.
 
-`/sign-up` creates an account. A password reset link leads to
-`/account/password`, which stays reachable even mid-onboarding.
+`/sign-up` creates an account. A password must be at least 8 characters and
+include an uppercase letter, a lowercase letter, a number and a special
+character. The form shows a live checklist that ticks each requirement as you
+type, and the same rules are enforced on the server, so a weak password cannot
+get through by calling the action directly.
+
+A password reset link leads to `/account/password`, which stays reachable even
+mid-onboarding and applies the same requirements.
 
 ### 2. Onboarding
 
@@ -89,10 +95,16 @@ priority, optional story points, a due date and labels.
 **Assignees.** Anyone with permission can assign an issue to any member of the
 workspace, including themselves, and change it later from the issue dialog.
 
-**Comments and mentions.** Type `@` and someone's first name to mention them.
-Mentions only resolve to people on that project, so nobody outside it can be
-pulled in by accident. Authors may edit their own comments; admins may delete
-anyone's. Deleting asks for confirmation.
+**Comments and mentions.** Type `@` in a comment to search workspace members;
+arrow keys and Enter pick one, and the handle is inserted for you. Only members
+of the current workspace appear, and mentions are resolved against that same
+membership on the server — a handle that names somebody outside the workspace,
+or nobody at all, simply notifies no one.
+
+Mentioning the same person twice in one comment produces a single notification,
+and someone who is mentioned does not also receive the general "commented"
+notification. Authors may edit their own comments; admins may delete anyone's.
+Deleting asks for confirmation.
 
 ### 6. Sprints
 

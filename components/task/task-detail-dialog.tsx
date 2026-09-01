@@ -196,6 +196,7 @@ function TaskDetailContent({
             <CommentList
               taskId={task.id}
               comments={bundle.comments.items}
+              members={bundle.members}
               canComment={canComment}
               onChange={refresh}
             />

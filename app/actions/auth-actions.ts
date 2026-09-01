@@ -7,17 +7,13 @@ import { handleAction } from "@/lib/api-response";
 import { createSupabaseServerClient } from "@/lib/auth/supabase-server";
 import { InternalError, UnauthorizedError, ValidationError } from "@/lib/errors";
 import { parseInput } from "@/lib/validation";
+import { passwordSchema } from "@/schemas/auth";
 import type { ApiResponse } from "@/types/api";
 
 const emailSchema = z
   .email({ error: "Enter a valid email address." })
   .trim()
   .toLowerCase();
-
-const passwordSchema = z
-  .string()
-  .min(8, { error: "Password must be at least 8 characters." })
-  .max(72, { error: "Password must be 72 characters or fewer." });
 
 const signInSchema = z.object({
   email: emailSchema,

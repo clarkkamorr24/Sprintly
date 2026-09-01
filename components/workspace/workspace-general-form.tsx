@@ -31,9 +31,11 @@ export function WorkspaceGeneralForm({
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
 
+  const [nameValue, setNameValue] = useState(name);
+  const [descriptionValue, setDescriptionValue] = useState(description ?? "");
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const formData = new FormData(event.currentTarget);
 
     setFieldErrors({});
     setFormError(null);
@@ -41,8 +43,8 @@ export function WorkspaceGeneralForm({
     startTransition(async () => {
       const result = await updateWorkspaceAction({
         workspaceId,
-        name: formData.get("name"),
-        description: formData.get("description"),
+        name: nameValue,
+        description: descriptionValue,
       });
 
       if (!result.success) {
@@ -63,7 +65,8 @@ export function WorkspaceGeneralForm({
         <Input
           id="ws-name"
           name="name"
-          defaultValue={name}
+          value={nameValue}
+          onChange={(event) => setNameValue(event.target.value)}
           required
           disabled={!canUpdate || isPending}
           aria-invalid={fieldErrors.name ? true : undefined}
@@ -90,7 +93,8 @@ export function WorkspaceGeneralForm({
           id="ws-description"
           name="description"
           rows={2}
-          defaultValue={description ?? ""}
+          value={descriptionValue}
+          onChange={(event) => setDescriptionValue(event.target.value)}
           disabled={!canUpdate || isPending}
         />
       </div>

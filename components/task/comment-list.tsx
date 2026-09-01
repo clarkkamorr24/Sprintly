@@ -12,13 +12,15 @@ import {
 } from "@/app/actions/comment-actions";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { Button } from "@/components/ui/button";
+import { MentionTextarea } from "@/components/task/mention-textarea";
 import { Textarea } from "@/components/ui/textarea";
-import type { CommentDTO } from "@/types/dto";
+import type { CommentDTO, UserDTO } from "@/types/dto";
 import { RelativeTime } from "@/components/shared/relative-time";
 
 interface CommentListProps {
   readonly taskId: string;
   readonly comments: readonly CommentDTO[];
+  readonly members: readonly UserDTO[];
   readonly canComment: boolean;
   readonly onChange: () => void;
 }
@@ -26,6 +28,7 @@ interface CommentListProps {
 export function CommentList({
   taskId,
   comments,
+  members,
   canComment,
   onChange,
 }: CommentListProps) {
@@ -190,11 +193,12 @@ export function CommentList({
 
       {canComment ? (
         <form onSubmit={handleCreate} className="space-y-2">
-          <Textarea
+          <MentionTextarea
             value={body}
-            onChange={(event) => setBody(event.target.value)}
+            onChange={setBody}
+            members={members}
             rows={3}
-            placeholder="Write a comment…"
+            placeholder="Write a comment… use @ to mention someone"
             aria-label="New comment"
             disabled={isPending}
           />

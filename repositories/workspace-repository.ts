@@ -173,3 +173,26 @@ export function findWorkspaceSlugsByProject(projectIds: readonly string[]) {
     select: { id: true, workspace: { select: { slug: true } } },
   });
 }
+
+export async function findWorkspaceMembersByHandle(
+  workspaceId: string,
+  handles: readonly string[]
+) {
+  const members = await db.workspaceMember.findMany({
+    where: { workspaceId },
+    select: { user: { select: { id: true, name: true, email: true } } },
+  });
+
+  const wanted = new Set(handles.map((handle) => handle.toLowerCase()));
+
+  return members
+    .map((member) => member.user)
+    .filter((user) =>
+      [
+        user.name.replace(/\s+/g, ""),
+        user.name.split(/\s+/)[0],
+        user.email.split("@")[0],
+      ].some((handle) => wanted.has(handle.toLowerCase()))
+    )
+    .map(({ id, name }) => ({ id, name }));
+}

@@ -10,8 +10,8 @@ import {
 } from "@/lib/generated/prisma/enums";
 import * as activityRepo from "@/repositories/activity-repository";
 import * as repo from "@/repositories/comment-repository";
-import * as memberRepo from "@/repositories/project-repository";
 import * as taskRepo from "@/repositories/task-repository";
+import * as workspaceRepo from "@/repositories/workspace-repository";
 import * as notificationService from "@/services/notification-service";
 import type {
   CreateCommentInput,
@@ -122,7 +122,10 @@ async function notifyCommentRecipients(input: {
   );
 
   const mentioned = mentionedNames.length
-    ? await memberRepo.findProjectMembersByHandle(task.projectId, mentionedNames)
+    ? await workspaceRepo.findWorkspaceMembersByHandle(
+        context.workspaceId,
+        mentionedNames
+      )
     : [];
 
   const mentionNotifications = mentioned.map((user) => ({

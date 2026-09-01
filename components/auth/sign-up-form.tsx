@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { signUpAction } from "@/app/actions/auth-actions";
+import { PasswordChecklist } from "@/components/auth/password-checklist";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,6 +22,7 @@ export function SignUpForm({ next, lockedEmail }: SignUpFormProps) {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [sentTo, setSentTo] = useState<string | null>(null);
+  const [password, setPassword] = useState("");
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -36,7 +38,7 @@ export function SignUpForm({ next, lockedEmail }: SignUpFormProps) {
       const result = await signUpAction({
         name: formData.get("name"),
         email,
-        password: formData.get("password"),
+        password,
       });
 
       if (!result.success) {
@@ -133,11 +135,17 @@ export function SignUpForm({ next, lockedEmail }: SignUpFormProps) {
             name="password"
             type="password"
             autoComplete="new-password"
-            placeholder="At least 8 characters"
+            placeholder="Choose a strong password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            aria-describedby="password-requirements"
             aria-invalid={fieldErrors.password ? true : undefined}
             disabled={isPending}
             required
           />
+
+          <PasswordChecklist id="password-requirements" value={password} />
+
           {fieldErrors.password ? (
             <p role="alert" className="text-sm text-(--sp-accent-700)">
               {fieldErrors.password[0]}
