@@ -4,18 +4,17 @@ import { useMemo, useRef, useState } from "react";
 
 import { InitialsTile } from "@/components/shared/initials-tile";
 import { Textarea } from "@/components/ui/textarea";
+import { mentionHandle } from "@/lib/mentions";
 import { cn } from "@/lib/utils";
 import type { UserDTO } from "@/types/dto";
 
 const MAX_SUGGESTIONS = 6;
 
-export function mentionHandle(name: string): string {
-  return name.replace(/\s+/g, "");
-}
-
 interface MentionTextareaProps {
   readonly value: string;
   readonly members: readonly UserDTO[];
+  /** Excluded from suggestions — you cannot mention yourself. */
+  readonly currentUserId: string;
   readonly placeholder?: string;
   readonly disabled?: boolean;
   readonly rows?: number;
@@ -26,6 +25,7 @@ interface MentionTextareaProps {
 export function MentionTextarea({
   value,
   members,
+  currentUserId,
   placeholder,
   disabled,
   rows = 3,
@@ -53,6 +53,7 @@ export function MentionTextarea({
     const needle = query.toLowerCase();
 
     return members
+      .filter((member) => member.id !== currentUserId)
       .filter(
         (member) =>
           needle === "" ||
@@ -60,7 +61,7 @@ export function MentionTextarea({
           member.email.toLowerCase().startsWith(needle)
       )
       .slice(0, MAX_SUGGESTIONS);
-  }, [members, query]);
+  }, [members, query, currentUserId]);
 
   const open = suggestions.length > 0;
 

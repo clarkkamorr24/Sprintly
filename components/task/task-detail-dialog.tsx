@@ -5,6 +5,8 @@ import { useCallback, useEffect, useState, useTransition } from "react";
 import { getTaskDetailAction } from "@/app/actions/task-actions";
 import { ActivityTimeline } from "@/components/task/activity-timeline";
 import { AssigneePicker } from "@/components/task/assignee-picker";
+import { TaskFieldsEditor } from "@/components/task/task-fields-editor";
+import { Button } from "@/components/ui/button";
 import { CommentList } from "@/components/task/comment-list";
 import { SubtaskList } from "@/components/task/subtask-list";
 import { Badge } from "@/components/ui/badge";
@@ -36,7 +38,7 @@ export function TaskDetailDialog({
 }: TaskDetailDialogProps) {
   return (
     <Dialog open={taskId !== null} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[85vh] max-w-3xl overflow-y-auto">
+      <DialogContent className="max-h-[88vh] overflow-y-auto sm:max-w-[min(56rem,92vw)]">
         {taskId ? (
           <TaskDetailContent
             key={taskId}
@@ -63,6 +65,7 @@ function TaskDetailContent({
 }: TaskDetailContentProps) {
   const [bundle, setBundle] = useState<TaskDetailBundle | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isEditing, setEditing] = useState(false);
   const [, startTransition] = useTransition();
 
   const load = useCallback((id: string) => {
@@ -172,8 +175,29 @@ function TaskDetailContent({
             ) : null}
 
             <section className="space-y-2">
-              <h3 className="text-sm font-semibold">Description</h3>
-              {task.description ? (
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="text-sm font-semibold">Description</h3>
+                {bundle.canEdit && !isEditing ? (
+                  <Button
+                    size="xs"
+                    variant="outline"
+                    onClick={() => setEditing(true)}
+                  >
+                    Edit details
+                  </Button>
+                ) : null}
+              </div>
+
+              {isEditing ? (
+                <TaskFieldsEditor
+                  task={task}
+                  onDone={() => {
+                    setEditing(false);
+                    refresh();
+                  }}
+                  onCancel={() => setEditing(false)}
+                />
+              ) : task.description ? (
                 <p className="text-sm whitespace-pre-wrap text-muted-foreground">
                   {task.description}
                 </p>
@@ -197,6 +221,7 @@ function TaskDetailContent({
               taskId={task.id}
               comments={bundle.comments.items}
               members={bundle.members}
+              currentUserId={bundle.currentUserId}
               canComment={canComment}
               onChange={refresh}
             />

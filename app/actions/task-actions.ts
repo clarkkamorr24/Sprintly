@@ -93,6 +93,14 @@ export async function getTaskDetailAction(
       }),
     ]);
 
-    return { task, canEdit, members, subtasks, comments, activity };
+    return {
+      task,
+      canEdit,
+      currentUserId: (await requireUser()).id,
+      members,
+      subtasks,
+      comments,
+      activity,
+    };
   });
 }

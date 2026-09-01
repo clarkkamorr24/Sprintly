@@ -12,8 +12,8 @@ import {
 } from "@/app/actions/comment-actions";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { Button } from "@/components/ui/button";
+import { CommentBody } from "@/components/task/comment-body";
 import { MentionTextarea } from "@/components/task/mention-textarea";
-import { Textarea } from "@/components/ui/textarea";
 import type { CommentDTO, UserDTO } from "@/types/dto";
 import { RelativeTime } from "@/components/shared/relative-time";
 
@@ -21,6 +21,7 @@ interface CommentListProps {
   readonly taskId: string;
   readonly comments: readonly CommentDTO[];
   readonly members: readonly UserDTO[];
+  readonly currentUserId: string;
   readonly canComment: boolean;
   readonly onChange: () => void;
 }
@@ -29,6 +30,7 @@ export function CommentList({
   taskId,
   comments,
   members,
+  currentUserId,
   canComment,
   onChange,
 }: CommentListProps) {
@@ -126,9 +128,11 @@ export function CommentList({
 
                 {editingId === comment.id ? (
                   <div className="space-y-2">
-                    <Textarea
+                    <MentionTextarea
                       value={editBody}
-                      onChange={(event) => setEditBody(event.target.value)}
+                      onChange={setEditBody}
+                      members={members}
+                      currentUserId={currentUserId}
                       rows={3}
                       aria-label="Edit comment"
                       disabled={isPending}
@@ -153,9 +157,7 @@ export function CommentList({
                   </div>
                 ) : (
                   <>
-                    <p className="text-sm whitespace-pre-wrap break-words">
-                      {comment.body}
-                    </p>
+                    <CommentBody body={comment.body} members={members} />
 
                     {comment.canEdit || comment.canDelete ? (
                       <div className="flex gap-3">
@@ -197,6 +199,7 @@ export function CommentList({
             value={body}
             onChange={setBody}
             members={members}
+            currentUserId={currentUserId}
             rows={3}
             placeholder="Write a comment… use @ to mention someone"
             aria-label="New comment"

@@ -11,6 +11,7 @@ import {
 import * as activityRepo from "@/repositories/activity-repository";
 import * as repo from "@/repositories/comment-repository";
 import * as taskRepo from "@/repositories/task-repository";
+import { extractMentionHandles } from "@/lib/mentions";
 import * as workspaceRepo from "@/repositories/workspace-repository";
 import * as notificationService from "@/services/notification-service";
 import type {
@@ -114,11 +115,17 @@ async function notifyCommentRecipients(input: {
   task: CommentTask;
   context: CommentContext;
   excerpt: string;
+  previousBody?: string;
+  mentionsOnly?: boolean;
 }): Promise<void> {
   const { task, context } = input;
 
-  const mentionedNames = [...input.body.matchAll(/@([\w.-]+)/g)].map((m) =>
-    m[1].toLowerCase()
+  const alreadyMentioned = new Set(
+    input.previousBody ? extractMentionHandles(input.previousBody) : []
+  );
+
+  const mentionedNames = extractMentionHandles(input.body).filter(
+    (handle) => !alreadyMentioned.has(handle)
   );
 
   const mentioned = mentionedNames.length
@@ -146,16 +153,18 @@ async function notifyCommentRecipients(input: {
     ...task.assignees.map((a) => a.userId),
   ].filter((id) => !mentionedIds.has(id));
 
-  const followerNotifications = followers.map((recipientId) => ({
-    recipientId,
-    actorId: context.user.id,
-    type: NotificationType.COMMENT_ADDED,
-    title: `${context.user.name} commented on "${task.title}"`,
-    body: input.excerpt,
-    workspaceId: context.workspaceId,
-    projectId: task.projectId,
-    taskId: task.id,
-  }));
+  const followerNotifications = input.mentionsOnly
+    ? []
+    : followers.map((recipientId) => ({
+        recipientId,
+        actorId: context.user.id,
+        type: NotificationType.COMMENT_ADDED,
+        title: `${context.user.name} commented on "${task.title}"`,
+        body: input.excerpt,
+        workspaceId: context.workspaceId,
+        projectId: task.projectId,
+        taskId: task.id,
+      }));
 
   await notificationService.notify(
     [...mentionNotifications, ...followerNotifications],
@@ -176,6 +185,15 @@ export async function updateComment(
   }
 
   const comment = await repo.updateComment(input.commentId, input.body);
+  
+  await notifyCommentRecipients({
+    body: input.body,
+    previousBody: existing.body,
+    mentionsOnly: true,
+    task: existing.task,
+    context,
+    excerpt: input.body.slice(0, 140),
+  });
 
   return toCommentDTO(comment, context.user.id, context.role);
 }

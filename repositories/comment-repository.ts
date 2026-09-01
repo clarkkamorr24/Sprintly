@@ -33,7 +33,16 @@ export function findCommentWithTask(commentId: string) {
       id: true,
       authorId: true,
       taskId: true,
-      task: { select: { id: true, title: true, projectId: true } },
+      body: true,
+      task: {
+        select: {
+          id: true,
+          title: true,
+          projectId: true,
+          createdById: true,
+          assignees: { select: { userId: true } },
+        },
+      },
     },
   });
 }
