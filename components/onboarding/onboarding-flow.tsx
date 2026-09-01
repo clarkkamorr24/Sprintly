@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { PROJECT_COLORS } from "@/lib/constants";
 import { WorkspaceRole } from "@/lib/generated/prisma/enums";
 import { cn } from "@/lib/utils";
+import { SprintlyMark } from "@/components/shared/sprintly-mark";
 
 const STEPS = ["Welcome", "Workspace", "Project", "Invite"] as const;
 
@@ -162,7 +163,7 @@ export function OnboardingFlow({
   return (
     <div className="w-full max-w-[460px] animate-in fade-in slide-in-from-bottom-2 duration-300 ease-out">
       <div className="mb-5.5 flex items-center gap-2">
-        <span aria-hidden className="block size-5 bg-(--sp-accent)" />
+        <SprintlyMark />
         <span className="text-[18px] font-extrabold tracking-[-0.02em]">
           Sprintly
         </span>

@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { initialsOf } from "@/lib/initials";
 import type { SessionUser } from "@/types/auth";
 import type { WorkspaceDTO } from "@/types/dto";
+import { SprintlyMark } from "@/components/shared/sprintly-mark";
 
 interface AppHeaderProps {
   readonly user: SessionUser;
@@ -38,7 +39,7 @@ export function AppHeader({
           href="/"
           className="flex items-center gap-2 outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 lg:hidden"
         >
-          <span aria-hidden className="block size-5 bg-(--sp-accent)" />
+          <SprintlyMark size={20} />
           <span className="text-[16px] font-extrabold tracking-[-0.02em]">Sprintly</span>
         </Link>
 

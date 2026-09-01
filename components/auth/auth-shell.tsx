@@ -1,3 +1,4 @@
+import { SprintlyMark } from "@/components/shared/sprintly-mark";
 interface AuthShellProps {
   readonly title: string;
   readonly description: string;
@@ -15,7 +16,7 @@ export function AuthShell({
     <main className="flex flex-1 items-center justify-center px-6 py-12">
       <div className="w-full max-w-100">
         <div className="mb-5.5 flex items-center gap-2">
-          <span aria-hidden className="block size-5 bg-(--sp-accent)" />
+          <SprintlyMark />
           <span className="text-[18px] font-extrabold tracking-[-0.02em]">
             Sprintly
           </span>

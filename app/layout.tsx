@@ -18,6 +18,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Sprintly",
   description: "Project management and team collaboration around a Kanban board.",
+  icons: {
+    icon: "/sprintly_logo.png",
+    apple: "/sprintly_logo.png",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

@@ -10,6 +10,7 @@ import { useMobileNav } from "@/components/shared/mobile-nav-context";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import type { WorkspaceDTO } from "@/types/dto";
+import { SprintlyMark } from "@/components/shared/sprintly-mark";
 
 interface NavItem {
   readonly label: string;
@@ -182,7 +183,7 @@ export function AppSidebar({
         href="/"
         className="flex items-center gap-2 outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
       >
-        <span aria-hidden className="block size-5 bg-(--sp-accent)" />
+        <SprintlyMark />
         <span className="text-[18px] font-extrabold tracking-[-0.02em]">Sprintly</span>
       </Link>
     </div>
