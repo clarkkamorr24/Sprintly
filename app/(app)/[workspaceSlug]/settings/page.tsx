@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 };
 
 export default async function WorkspaceSettingsPage(
-  props: PageProps<"/workspaces/[workspaceSlug]/settings">
+  props: PageProps<"/[workspaceSlug]/settings">
 ) {
   const { workspaceSlug } = await props.params;
 
@@ -43,7 +43,7 @@ export default async function WorkspaceSettingsPage(
       <header className="space-y-1">
         <nav aria-label="Breadcrumb" className="sp-kicker">
           <Link
-            href={`/workspaces/${workspaceSlug}`}
+            href={`/${workspaceSlug}`}
             className="outline-none hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50"
           >
             {workspace.name}
@@ -78,7 +78,7 @@ export default async function WorkspaceSettingsPage(
             {workspace.projectCount === 1 ? "project" : "projects"}
           </p>
           <Link
-            href={`/workspaces/${workspaceSlug}/team`}
+            href={`/${workspaceSlug}/team`}
             className="mt-2 inline-block text-sm text-(--sp-accent) underline-offset-4 outline-none hover:underline focus-visible:ring-[3px] focus-visible:ring-ring/50"
           >
             Manage the team and invitations

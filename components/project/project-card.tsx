@@ -1,4 +1,5 @@
 import { OpenProjectLink } from "@/components/project/open-project-link";
+import { ProjectActionsMenu } from "@/components/project/project-actions-menu";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProjectStatus } from "@/lib/generated/prisma/enums";
@@ -22,9 +23,10 @@ const STATUS_VARIANT: Readonly<
 
 interface ProjectCardProps {
   readonly project: ProjectDTO;
+  readonly canDelete: boolean;
 }
 
-export function ProjectCard({ project }: ProjectCardProps) {
+export function ProjectCard({ project, canDelete }: ProjectCardProps) {
   return (
     <Card className="relative transition-colors hover:border-ring/40 focus-within:border-ring/40">
       <CardHeader>
@@ -37,7 +39,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
           <div className="min-w-0 flex-1">
             <CardTitle className="truncate text-base">
               <OpenProjectLink
-                projectId={project.id}
+                projectSlug={project.slug}
                 workspaceSlug={project.workspaceSlug}
                 className="rounded-sm outline-none after:absolute after:inset-0 focus-visible:ring-[3px] focus-visible:ring-ring/50"
               >
@@ -48,6 +50,13 @@ export function ProjectCard({ project }: ProjectCardProps) {
           <Badge variant={STATUS_VARIANT[project.status]}>
             {STATUS_LABEL[project.status]}
           </Badge>
+
+          {canDelete ? (
+            <ProjectActionsMenu
+              projectId={project.id}
+              projectName={project.name}
+            />
+          ) : null}
         </div>
       </CardHeader>
 

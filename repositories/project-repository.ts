@@ -11,6 +11,7 @@ const projectSelect = {
   workspaceId: true,
   workspace: { select: { slug: true } },
   name: true,
+  slug: true,
   key: true,
   description: true,
   color: true,
@@ -46,7 +47,7 @@ export function findProjectsForWorkspace(filters: {
 export function findFirstProject(workspaceId: string) {
   return db.project.findFirst({
     where: { workspaceId, status: { not: "ARCHIVED" } },
-    select: { id: true, name: true, key: true },
+    select: { id: true, name: true, key: true, slug: true },
     orderBy: [{ status: "asc" }, { updatedAt: "desc" }],
   });
 }
@@ -54,7 +55,7 @@ export function findFirstProject(workspaceId: string) {
 export function findProjectInWorkspace(projectId: string, workspaceId: string) {
   return db.project.findFirst({
     where: { id: projectId, workspaceId },
-    select: { id: true, name: true, key: true },
+    select: { id: true, name: true, key: true, slug: true },
   });
 }
 
@@ -94,6 +95,7 @@ export async function nextProjectKey(
 export function createProjectWithBoard(input: {
   workspaceId: string;
   key: string;
+  slug: string;
   name: string;
   description: string | null;
   color: string;
@@ -105,6 +107,7 @@ export function createProjectWithBoard(input: {
     data: {
       workspaceId: input.workspaceId,
       key: input.key,
+      slug: input.slug,
       name: input.name,
       description: input.description,
       color: input.color,
@@ -150,5 +153,26 @@ export function countProjectsByStatus(workspaceId: string) {
     by: ["status"],
     where: { workspaceId },
     _count: { _all: true },
+  });
+}
+
+export function findProjectByName(workspaceId: string, name: string) {
+  return db.project.findFirst({
+    where: { workspaceId, name: { equals: name, mode: "insensitive" } },
+    select: { id: true },
+  });
+}
+
+export function findProjectBySlug(workspaceId: string, slug: string) {
+  return db.project.findFirst({
+    where: { workspaceId, slug },
+    select: { id: true, name: true, key: true, slug: true },
+  });
+}
+
+export function findTakenSlugs(workspaceId: string, prefix: string) {
+  return db.project.findMany({
+    where: { workspaceId, slug: { startsWith: prefix } },
+    select: { slug: true },
   });
 }

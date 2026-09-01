@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 };
 
 export default async function TeamPage(
-  props: PageProps<"/workspaces/[workspaceSlug]/team">
+  props: PageProps<"/[workspaceSlug]/team">
 ) {
   const { workspaceSlug } = await props.params;
 

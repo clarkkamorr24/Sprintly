@@ -43,7 +43,7 @@ export function MyTasks({ tasks, total, workspaceSlug }: MyTasksProps) {
 
                   <div className="min-w-0 flex-1">
                     <OpenProjectLink
-                      projectId={task.project.id}
+                      projectSlug={task.project.slug}
                       workspaceSlug={workspaceSlug}
                       className="rounded-sm text-sm font-medium outline-none hover:underline focus-visible:ring-[3px] focus-visible:ring-ring/50"
                     >

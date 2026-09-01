@@ -68,18 +68,18 @@ function linkFor(
   if (notification.taskId && notification.projectId) {
     const slug = slugByProject.get(notification.projectId);
     return slug
-      ? `/workspaces/${slug}/board?task=${notification.taskId}`
+      ? `/${slug}/board?task=${notification.taskId}`
       : null;
   }
 
   if (notification.projectId) {
     const slug = slugByProject.get(notification.projectId);
-    return slug ? `/workspaces/${slug}/board` : null;
+    return slug ? `/${slug}/board` : null;
   }
 
   if (notification.workspaceId) {
     const slug = slugByWorkspace.get(notification.workspaceId);
-    return slug ? `/workspaces/${slug}` : null;
+    return slug ? `/${slug}` : null;
   }
 
   return null;

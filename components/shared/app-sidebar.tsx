@@ -7,9 +7,11 @@ import { useState } from "react";
 import { CreateWorkspaceDialog } from "@/components/workspace/create-workspace-dialog";
 import { WorkspaceSwitcher } from "@/components/workspace/workspace-switcher";
 import { useMobileNav } from "@/components/shared/mobile-nav-context";
+import { ProjectNav } from "@/components/shared/project-nav";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { parseRoute, workspacePath } from "@/lib/routes";
 import { cn } from "@/lib/utils";
-import type { WorkspaceDTO } from "@/types/dto";
+import type { ProjectDTO, WorkspaceDTO } from "@/types/dto";
 import { SprintlyMark } from "@/components/shared/sprintly-mark";
 
 interface NavItem {
@@ -31,7 +33,7 @@ interface AppSidebarProps {
   readonly workspaces: readonly WorkspaceDTO[];
   readonly activeWorkspaceId: string;
   readonly activeWorkspaceSlug: string;
-  readonly activeProject: { readonly id: string; readonly name: string; readonly key: string } | null;
+  readonly projects: readonly ProjectDTO[];
 }
 
 const WORKSPACE_NAV: readonly NavItem[] = [
@@ -80,81 +82,29 @@ const WORKSPACE_NAV: readonly NavItem[] = [
   },
 ];
 
-const WORK_NAV: readonly NavItem[] = [
-  {
-    label: "Board",
-    segment: "board",
-    icon: (
-      <svg {...iconProps}>
-        <rect x="3" y="4" width="5" height="16" />
-        <rect x="10" y="4" width="5" height="11" />
-        <rect x="17" y="4" width="4" height="7" />
-      </svg>
-    ),
-  },
-  {
-    label: "Backlog",
-    segment: "backlog",
-    icon: (
-      <svg {...iconProps}>
-        <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
-      </svg>
-    ),
-  },
-  {
-    label: "Sprints",
-    segment: "sprints",
-    icon: (
-      <svg {...iconProps}>
-        <circle cx="12" cy="12" r="8" />
-        <circle cx="12" cy="12" r="3.5" />
-      </svg>
-    ),
-  },
-  {
-    label: "Issues",
-    segment: "issues",
-    icon: (
-      <svg {...iconProps}>
-        <circle cx="12" cy="12" r="8.5" />
-        <path d="M12 8v4.5M12 16h.01" />
-      </svg>
-    ),
-  },
-  {
-    label: "Reports",
-    segment: "reports",
-    icon: (
-      <svg {...iconProps}>
-        <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
-      </svg>
-    ),
-  },
-];
-
 export function AppSidebar({
   workspaces,
   activeWorkspaceId,
   activeWorkspaceSlug,
-  activeProject,
+  projects,
 }: AppSidebarProps) {
   const pathname = usePathname();
   const { isOpen: isMobileOpen, setOpen: setMobileOpen } = useMobileNav();
   const [isCreateOpen, setCreateOpen] = useState(false);
 
-  const routeSlug = /^\/workspaces\/([^/]+)/.exec(pathname)?.[1];
-  const currentSlug = routeSlug ?? activeWorkspaceSlug;
+  const currentSlug = parseRoute(pathname).workspaceSlug ?? activeWorkspaceSlug;
 
-  const currentWorkspace =
-    workspaces.find((w) => w.slug === currentSlug) ??
-    workspaces.find((w) => w.id === activeWorkspaceId);
+  /**
+   * This layout does not re-render on client-side navigation, so `projects` can
+   * still hold the previous workspace's list right after a switch. Rendering
+   * only the ones belonging to the workspace in the URL keeps stale entries out
+   * until the next full load.
+   */
+  const visibleProjects = projects.filter(
+    (project) => project.workspaceSlug === currentSlug
+  );
 
-  const hasProjects = currentWorkspace
-    ? currentWorkspace.projectCount > 0
-    : activeProject !== null;
-
-  const hrefFor = (segment: string) =>
-    segment ? `/workspaces/${currentSlug}/${segment}` : `/workspaces/${currentSlug}`;
+  const hrefFor = (segment: string) => workspacePath(currentSlug, segment);
 
   const isCurrent = (segment: string) => pathname === hrefFor(segment);
 
@@ -196,14 +146,7 @@ export function AppSidebar({
       </div>
       {renderNav(WORKSPACE_NAV)}
 
-      {hasProjects ? (
-        <>
-          <div className="sp-kicker mt-2 px-2.5 pt-1.5 pb-1 text-[10px] tracking-[0.1em]">
-            Work
-          </div>
-          {renderNav(WORK_NAV)}
-        </>
-      ) : null}
+      <ProjectNav workspaceSlug={currentSlug} projects={visibleProjects} />
     </nav>
   ) : null;
 
@@ -211,7 +154,6 @@ export function AppSidebar({
     <WorkspaceSwitcher
       workspaces={workspaces}
       activeWorkspaceId={activeWorkspaceId}
-      activeProject={activeProject}
       onCreate={() => setCreateOpen(true)}
     />
   );

@@ -61,7 +61,7 @@ export function findMyOpenTasks(input: {
       title: true,
       priority: true,
       dueDate: true,
-      project: { select: { id: true, name: true, color: true } },
+      project: { select: { id: true, name: true, color: true, slug: true } },
       column: { select: { name: true } },
     },
     orderBy: [{ dueDate: { sort: "asc", nulls: "last" } }, { priority: "desc" }],

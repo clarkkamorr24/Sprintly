@@ -1,12 +1,9 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowDown01Icon, Tick02Icon } from "@hugeicons/core-free-icons";
-import { toast } from "sonner";
 
-import { selectProjectAction } from "@/app/actions/project-actions";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,6 +12,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { parseRoute, projectPath } from "@/lib/routes";
 import type { ProjectDTO } from "@/types/dto";
 
 interface ProjectSwitcherProps {
@@ -27,7 +25,7 @@ export function ProjectSwitcher({
   activeProjectId,
 }: ProjectSwitcherProps) {
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const pathname = usePathname();
 
   const active = projects.find((project) => project.id === activeProjectId);
 
@@ -37,17 +35,12 @@ export function ProjectSwitcher({
     );
   }
 
-  const select = (projectId: string) => {
-    startTransition(async () => {
-      const result = await selectProjectAction({ projectId });
+  const route = parseRoute(pathname);
+  const workspaceSlug = route.workspaceSlug ?? active?.workspaceSlug ?? "";
+  const section = route.section ?? "board";
 
-      if (!result.success) {
-        toast.error(result.error.message);
-        return;
-      }
-
-      router.refresh();
-    });
+  const select = (projectSlug: string) => {
+    router.push(projectPath(workspaceSlug, projectSlug, section));
   };
 
   return (
@@ -56,7 +49,6 @@ export function ProjectSwitcher({
         render={
           <button
             type="button"
-            disabled={isPending}
             aria-label={`Project: ${active?.name ?? "none"}. Switch project`}
             className="sp-kicker inline-flex items-center gap-1.5 outline-none hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50"
           >
@@ -75,7 +67,7 @@ export function ProjectSwitcher({
           {projects.map((project) => (
             <DropdownMenuItem
               key={project.id}
-              onClick={() => select(project.id)}
+              onClick={() => select(project.slug)}
             >
               <span className="flex-1 truncate">
                 {project.name}

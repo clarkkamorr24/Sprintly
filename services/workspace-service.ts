@@ -13,6 +13,7 @@ import {
   ValidationError,
 } from "@/lib/errors";
 import { WorkspaceRole } from "@/lib/generated/prisma/enums";
+import { isReservedSlug } from "@/lib/routes";
 import * as repo from "@/repositories/workspace-repository";
 import type {
   CreateWorkspaceInput,
@@ -63,7 +64,8 @@ function slugify(name: string): string {
 }
 
 async function generateUniqueSlug(name: string): Promise<string> {
-  const base = slugify(name) || "workspace";
+  const slugified = slugify(name) || "workspace";
+  const base = isReservedSlug(slugified) ? `${slugified}-workspace` : slugified;
 
   for (let attempt = 0; attempt < 5; attempt += 1) {
     const candidate =

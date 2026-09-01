@@ -23,7 +23,7 @@ export async function createColumnAction(
     const data = parseInput(createColumnSchema, input);
     const column = await boardService.createColumn(data);
 
-    revalidatePath("/workspaces/[workspaceSlug]", "layout");
+    revalidatePath("/[workspaceSlug]", "layout");
     return { id: column.id, name: column.name };
   });
 }
@@ -35,7 +35,7 @@ export async function renameColumnAction(
     const data = parseInput(renameColumnSchema, input);
     const column = await boardService.renameColumn(data);
 
-    revalidatePath("/workspaces/[workspaceSlug]", "layout");
+    revalidatePath("/[workspaceSlug]", "layout");
     return { id: column.id, name: column.name };
   });
 }
@@ -47,7 +47,7 @@ export async function deleteColumnAction(
     const data = parseInput(deleteColumnSchema, input);
     await boardService.deleteColumn(data);
 
-    revalidatePath("/workspaces/[workspaceSlug]", "layout");
+    revalidatePath("/[workspaceSlug]", "layout");
     return null;
   });
 }
@@ -59,7 +59,7 @@ export async function reorderColumnsAction(
     const data = parseInput(reorderColumnsSchema, input);
     await boardService.reorderColumns(data);
 
-    revalidatePath("/workspaces/[workspaceSlug]", "layout");
+    revalidatePath("/[workspaceSlug]", "layout");
     return null;
   });
 }

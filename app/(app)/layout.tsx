@@ -3,12 +3,9 @@ import { redirect } from "next/navigation";
 import { AppHeader } from "@/components/shared/app-header";
 import { MobileNavProvider } from "@/components/shared/mobile-nav-context";
 import { AppSidebar } from "@/components/shared/app-sidebar";
-import {
-  getRouteProjectId,
-  resolveActiveWorkspace,
-} from "@/lib/auth/active-workspace";
+import { resolveActiveWorkspace } from "@/lib/auth/active-workspace";
 import { requireUserOrRedirect } from "@/lib/auth/session";
-import { getActiveProject } from "@/services/project-service";
+import { listProjects } from "@/services/project-service";
 import { getUnreadCount } from "@/services/notification-service";
 import { listWorkspaces } from "@/services/workspace-service";
 
@@ -26,9 +23,10 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
 
   const activeWorkspace = await resolveActiveWorkspace(workspaces);
   const activeWorkspaceId = activeWorkspace?.id ?? "";
-  const activeProject = activeWorkspace
-    ? await getActiveProject(activeWorkspace.id, await getRouteProjectId())
-    : null;
+
+  const projects = activeWorkspace
+    ? await listProjects({ workspaceId: activeWorkspace.id })
+    : [];
 
   return (
     <MobileNavProvider>
@@ -37,7 +35,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
           workspaces={workspaces}
           activeWorkspaceId={activeWorkspaceId}
           activeWorkspaceSlug={activeWorkspace?.slug ?? ""}
-          activeProject={activeProject}
+          projects={projects}
         />
 
         <div className="flex min-w-0 flex-1 flex-col">

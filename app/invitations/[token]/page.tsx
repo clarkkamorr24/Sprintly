@@ -44,7 +44,7 @@ export default async function AcceptInvitationPage(
 
   try {
     const accepted = await acceptInvitation(token);
-    redirect(`/workspaces/${accepted.workspaceSlug}`);
+    redirect(`/${accepted.workspaceSlug}`);
   } catch (error) {
     unstable_rethrow(error);
 

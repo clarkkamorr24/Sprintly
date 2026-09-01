@@ -1,49 +1,27 @@
-"use client";
+import Link from "next/link";
 
-import { useRouter } from "next/navigation";
-import { useTransition } from "react";
-import { toast } from "sonner";
-
-import { selectProjectAction } from "@/app/actions/project-actions";
+import { projectPath } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
 interface OpenProjectLinkProps {
-  readonly projectId: string;
+  readonly projectSlug: string;
   readonly workspaceSlug: string;
   readonly className?: string;
   readonly children: React.ReactNode;
 }
 
 export function OpenProjectLink({
-  projectId,
+  projectSlug,
   workspaceSlug,
   className,
   children,
 }: OpenProjectLinkProps) {
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
-
-  const open = () => {
-    startTransition(async () => {
-      const result = await selectProjectAction({ projectId });
-
-      if (!result.success) {
-        toast.error(result.error.message);
-        return;
-      }
-
-      router.push(`/workspaces/${workspaceSlug}/board`);
-    });
-  };
-
   return (
-    <button
-      type="button"
-      onClick={open}
-      disabled={isPending}
+    <Link
+      href={projectPath(workspaceSlug, projectSlug, "board")}
       className={cn("text-left", className)}
     >
       {children}
-    </button>
+    </Link>
   );
 }

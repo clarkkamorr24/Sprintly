@@ -10,7 +10,7 @@ import { listProjects } from "@/services/project-service";
 import { getWorkspace } from "@/services/workspace-service";
 
 export async function generateMetadata(
-  props: PageProps<"/workspaces/[workspaceSlug]">
+  props: PageProps<"/[workspaceSlug]">
 ): Promise<Metadata> {
   const { workspaceSlug } = await props.params;
 
@@ -24,7 +24,7 @@ export async function generateMetadata(
 }
 
 export default async function WorkspacePage(
-  props: PageProps<"/workspaces/[workspaceSlug]">
+  props: PageProps<"/[workspaceSlug]">
 ) {
   const { workspaceSlug } = await props.params;
 
@@ -60,6 +60,7 @@ export default async function WorkspacePage(
         workspaceId={context.workspaceId}
         projects={projects}
         canCreate={can(context.role, PERMISSIONS.PROJECT_CREATE)}
+        canDelete={can(context.role, PERMISSIONS.PROJECT_DELETE)}
       />
     </main>
   );

@@ -15,12 +15,14 @@ interface ProjectListProps {
   readonly workspaceId: string;
   readonly projects: readonly ProjectDTO[];
   readonly canCreate: boolean;
+  readonly canDelete: boolean;
 }
 
 export function ProjectList({
   workspaceId,
   projects,
   canCreate,
+  canDelete,
 }: ProjectListProps) {
   const [isCreateOpen, setCreateOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -80,7 +82,7 @@ export function ProjectList({
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((project) => (
             <li key={project.id}>
-              <ProjectCard project={project} />
+              <ProjectCard project={project} canDelete={canDelete} />
             </li>
           ))}
         </ul>

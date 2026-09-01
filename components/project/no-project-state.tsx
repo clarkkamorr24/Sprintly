@@ -28,7 +28,7 @@ export function NoProjectState({
             <Button
               nativeButton={false}
               render={
-                <Link href={`/workspaces/${workspaceSlug}/projects`}>
+                <Link href={`/${workspaceSlug}/projects`}>
                   Create a project
                 </Link>
               }

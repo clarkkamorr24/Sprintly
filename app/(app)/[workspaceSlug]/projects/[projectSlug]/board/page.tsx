@@ -4,10 +4,11 @@ import { BoardFilters } from "@/components/board/board-filters";
 import { BoardView } from "@/components/board/board-view";
 import { EmptyState } from "@/components/shared/empty-state";
 import { NoProjectState } from "@/components/project/no-project-state";
+import { ProjectActionsMenu } from "@/components/project/project-actions-menu";
 import { ProjectSwitcher } from "@/components/project/project-switcher";
 import { SprintBanner } from "@/components/sprint/sprint-banner";
 import { can, PERMISSIONS } from "@/lib/auth/permissions";
-import { resolveWorkspaceProjectScope } from "@/lib/auth/workspace-page";
+import { resolveProjectBySlug } from "@/lib/auth/workspace-page";
 import { SprintStatus } from "@/lib/generated/prisma/enums";
 import { loadPage } from "@/lib/page-guard";
 import { boardFiltersSchema } from "@/schemas/task";
@@ -25,9 +26,9 @@ function single(value: string | string[] | undefined): string | undefined {
 }
 
 export default async function WorkspaceBoardPage(
-  props: PageProps<"/workspaces/[workspaceSlug]/board">
+  props: PageProps<"/[workspaceSlug]/projects/[projectSlug]/board">
 ) {
-  const { workspaceSlug } = await props.params;
+  const { workspaceSlug, projectSlug } = await props.params;
   const searchParams = await props.searchParams;
 
   const filters = boardFiltersSchema.parse({
@@ -39,7 +40,7 @@ export default async function WorkspaceBoardPage(
   });
 
   const scoped = await loadPage(async () => {
-    const scope = await resolveWorkspaceProjectScope(workspaceSlug);
+    const scope = await resolveProjectBySlug(workspaceSlug, projectSlug);
 
     if (!scope.project || !scope.context) {
       return { empty: true as const, workspace: scope.workspace };
@@ -118,6 +119,14 @@ export default async function WorkspaceBoardPage(
             <div className="min-w-0 flex-1">
               <h1 className="text-[32px]">{project.name}</h1>
             </div>
+
+            {can(scoped.context.role, PERMISSIONS.PROJECT_DELETE) ? (
+              <ProjectActionsMenu
+                projectId={project.id}
+                projectName={project.name}
+                redirectTo={`/${workspaceSlug}/projects`}
+              />
+            ) : null}
           </div>
         )}
       </div>

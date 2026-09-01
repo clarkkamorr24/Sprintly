@@ -18,5 +18,5 @@ export default async function HomePage() {
     redirect("/onboarding");
   }
 
-  redirect(`/workspaces/${workspace.slug}`);
+  redirect(`/${workspace.slug}`);
 }

@@ -16,6 +16,7 @@ export interface ActiveProject {
   readonly id: string;
   readonly name: string;
   readonly key: string;
+  readonly slug: string;
 }
 
 export const resolveWorkspaceProject = cache(

@@ -24,7 +24,7 @@ export async function createProjectAction(
     const data = parseInput(createProjectSchema, input);
     const project = await projectService.createProject(data);
 
-    revalidatePath("/workspaces/[workspaceSlug]", "page");
+    revalidatePath("/[workspaceSlug]", "layout");
     return project;
   });
 }
@@ -36,8 +36,8 @@ export async function updateProjectAction(
     const data = parseInput(updateProjectSchema, input);
     const project = await projectService.updateProject(data);
 
-    revalidatePath("/workspaces/[workspaceSlug]", "page");
-    revalidatePath("/workspaces/[workspaceSlug]", "layout");
+    revalidatePath("/[workspaceSlug]", "page");
+    revalidatePath("/[workspaceSlug]", "layout");
     return project;
   });
 }
@@ -50,7 +50,7 @@ export async function deleteProjectAction(
 
     await projectService.deleteProject(data);
 
-    revalidatePath("/workspaces/[workspaceSlug]", "page");
+    revalidatePath("/[workspaceSlug]", "layout");
     return null;
   });
 }

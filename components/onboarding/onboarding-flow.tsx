@@ -80,7 +80,7 @@ export function OnboardingFlow({
         return;
       }
 
-      router.replace(`/workspaces/${workspaceSlug}`);
+      router.replace(`/${workspaceSlug}`);
       router.refresh();
     });
   };

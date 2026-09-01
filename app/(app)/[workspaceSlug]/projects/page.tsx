@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default async function WorkspaceProjectsPage(
-  props: PageProps<"/workspaces/[workspaceSlug]/projects">
+  props: PageProps<"/[workspaceSlug]/projects">
 ) {
   const { workspaceSlug } = await props.params;
 
@@ -36,6 +36,7 @@ export default async function WorkspaceProjectsPage(
         workspaceId={context.workspaceId}
         projects={projects}
         canCreate={can(context.role, PERMISSIONS.PROJECT_CREATE)}
+        canDelete={can(context.role, PERMISSIONS.PROJECT_DELETE)}
       />
     </main>
   );

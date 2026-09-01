@@ -56,6 +56,12 @@ export function CreateProjectDialog({
       });
 
       if (!result.success) {
+        if (result.error.code === "CONFLICT") {
+          setFieldErrors({ name: [result.error.message] });
+          setFormError(null);
+          return;
+        }
+
         setFieldErrors(result.error.fieldErrors ?? {});
         setFormError(result.error.fieldErrors ? null : result.error.message);
         return;

@@ -19,7 +19,7 @@ export async function inviteMemberAction(
     const data = parseInput(inviteMemberSchema, input);
     const invitation = await invitationService.inviteMember(data);
 
-    revalidatePath("/workspaces/[workspaceSlug]/team", "page");
+    revalidatePath("/[workspaceSlug]/team", "page");
     return invitation;
   });
 }
@@ -31,7 +31,7 @@ export async function revokeInvitationAction(
     const data = parseInput(revokeInvitationSchema, input);
     await invitationService.revokeInvitation(data);
 
-    revalidatePath("/workspaces", "layout");
+    revalidatePath("/[workspaceSlug]", "layout");
     return null;
   });
 }

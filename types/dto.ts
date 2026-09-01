@@ -38,6 +38,7 @@ export interface ProjectDTO {
   readonly id: string;
   readonly workspaceId: string;
   readonly workspaceSlug: string;
+  readonly slug: string;
   readonly name: string;
   readonly key: string;
   readonly description: string | null;
@@ -178,7 +179,12 @@ export interface MyTaskDTO {
   readonly priority: TaskPriority;
   readonly dueDate: string | null;
   readonly columnName: string;
-  readonly project: { readonly id: string; readonly name: string; readonly color: string };
+  readonly project: {
+    readonly id: string;
+    readonly name: string;
+    readonly color: string;
+    readonly slug: string;
+  };
 }
 
 export interface DashboardStatsDTO {
