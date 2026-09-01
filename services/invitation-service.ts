@@ -154,8 +154,6 @@ export async function acceptInvitation(
   const invitation = await repo.findInvitationByToken(token);
   if (!invitation) throw new NotFoundError("That invitation is not valid.");
 
-  // Check the address before anything else: an invitation is only ever valid
-  // for the email it was sent to, whatever its status.
   if (invitation.email.toLowerCase() !== user.email.toLowerCase()) {
     throw new ForbiddenError(
       "That invitation was sent to a different email address."
@@ -163,9 +161,6 @@ export async function acceptInvitation(
   }
 
   if (invitation.status !== "PENDING") {
-    // Signing in for the first time already accepts pending invitations for
-    // that address, so arriving here just after registering is success, not a
-    // conflict. Only report one if the membership really is missing.
     const member = await workspaceRepo.findMembership(
       invitation.workspaceId,
       user.id
@@ -195,9 +190,6 @@ export async function acceptInvitation(
     role: invitation.role as WorkspaceRole,
   });
 
-  // Joining an existing workspace means the setup flow — which names a
-  // workspace and creates its first project — does not apply. Without this the
-  // app layout would bounce the new member straight back to /onboarding.
   await userRepo.markOnboarded(user.id);
 
   await activityRepo.recordActivity({
@@ -223,12 +215,6 @@ export type InvitationLanding =
       readonly hasAccount: boolean;
     };
 
-/**
- * Resolves an invitation for a visitor who may not be signed in yet, so the
- * landing page can send them to sign-in or registration. Reading this requires
- * the invitation token, which already names the invited address, so reporting
- * whether that one address has an account leaks nothing the caller lacks.
- */
 export async function getInvitationLanding(
   token: string
 ): Promise<InvitationLanding> {

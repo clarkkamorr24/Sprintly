@@ -2,7 +2,7 @@ import "server-only";
 
 import { db } from "@/lib/db";
 import type { WorkspaceRole } from "@/lib/generated/prisma/enums";
-import type { Prisma } from "@/lib/generated/prisma/client";
+import type { Prisma } from "@prisma/client";
 
 export const userSelect = {
   id: true,

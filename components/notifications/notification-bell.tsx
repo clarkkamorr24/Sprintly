@@ -195,7 +195,7 @@ export function NotificationBell({
                     !notification.isRead && "bg-accent/40"
                   )}
                 >
-                  <div className="min-w-0 flex-1">
+                  <div className="min-w-0 flex-1 space-x-2">
                     {notification.href ? (
                       <Link
                         href={notification.href}

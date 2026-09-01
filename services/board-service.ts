@@ -34,7 +34,7 @@ import type {
   UserDTO,
   WorkspaceIssueDTO,
 } from "@/types/dto";
-import type { Prisma } from "@/lib/generated/prisma/client";
+import type { Prisma } from "@prisma/client";
 import type { Paginated } from "@/types/api";
 
 const MAX_COLUMNS = 12;

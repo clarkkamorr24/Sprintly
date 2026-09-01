@@ -2,7 +2,7 @@ import "server-only";
 
 import { POSITION_STEP } from "@/lib/constants";
 import { db } from "@/lib/db";
-import type { Prisma } from "@/lib/generated/prisma/client";
+import type { Prisma } from "@prisma/client";
 import { userSelect } from "@/repositories/workspace-repository";
 
 const taskCardSelect = {
