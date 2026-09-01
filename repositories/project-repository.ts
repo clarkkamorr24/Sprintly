@@ -2,7 +2,7 @@ import "server-only";
 
 import { db } from "@/lib/db";
 import { DEFAULT_BOARD_COLUMNS, POSITION_STEP } from "@/lib/constants";
-import type { Prisma } from "@prisma/client";
+import type { Prisma } from "@/lib/generated/prisma/client";
 import type { ProjectStatus } from "@/lib/generated/prisma/enums";
 import { userSelect } from "@/repositories/workspace-repository";
 

@@ -2,7 +2,7 @@ import "server-only";
 
 import { db } from "@/lib/db";
 import type { ActivityType } from "@/lib/generated/prisma/enums";
-import type { Prisma } from "@prisma/client";
+import type { Prisma } from "@/lib/generated/prisma/client";
 import { userSelect } from "@/repositories/workspace-repository";
 
 export interface ActivityInput {
