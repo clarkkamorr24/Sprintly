@@ -76,7 +76,7 @@ export function CreateWorkspaceDialog({
               <Input
                 id="workspace-name"
                 name="name"
-                placeholder="Acme Inc."
+                placeholder="Workspace Inc."
                 required
                 disabled={isPending}
                 aria-invalid={fieldErrors.name ? true : undefined}

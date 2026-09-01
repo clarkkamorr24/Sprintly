@@ -241,7 +241,7 @@ export function OnboardingFlow({
                 id="ws-name"
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                placeholder="Acme Engineering"
+                placeholder="Your workspace name"
                 disabled={isPending}
               />
             </div>
@@ -319,7 +319,7 @@ export function OnboardingFlow({
                 id="invite-emails"
                 value={emails}
                 onChange={(event) => setEmails(event.target.value)}
-                placeholder="ana@acme.com, sam@acme.com"
+                placeholder="john@sprintly.com"
                 disabled={isPending}
               />
             </div>
