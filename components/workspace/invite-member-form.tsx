@@ -66,8 +66,13 @@ export function InviteMemberForm({ workspaceId }: InviteMemberFormProps) {
       const result = await inviteMemberAction({ workspaceId, email, role });
 
       if (!result.success) {
-        setFieldErrors(result.error.fieldErrors ?? {});
-        setFormError(result.error.fieldErrors ? null : result.error.message);
+        if (result.error.fieldErrors) {
+          setFieldErrors(result.error.fieldErrors);
+        } else if (result.error.code === "CONFLICT") {
+          setFieldErrors({ email: [result.error.message] });
+        } else {
+          setFormError(result.error.message);
+        }
         return;
       }
 

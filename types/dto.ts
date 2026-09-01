@@ -201,6 +201,63 @@ export interface DashboardDTO {
   readonly recentActivity: readonly ActivityEntryDTO[];
 }
 
+export interface ThroughputPointDTO {
+  readonly date: string;
+  readonly created: number;
+  readonly completed: number;
+}
+
+export interface WorkloadRowDTO {
+  readonly user: UserDTO | null;
+  readonly open: number;
+  readonly overdue: number;
+  readonly urgent: number;
+}
+
+export interface SprintOutcomeDTO {
+  readonly id: string;
+  readonly name: string;
+  readonly projectKey: string;
+  readonly status: SprintStatus;
+  readonly startDate: string;
+  readonly endDate: string;
+  readonly total: number;
+  readonly completed: number;
+  readonly points: number;
+  readonly completedPoints: number;
+}
+
+export interface ProjectProgressDTO {
+  readonly id: string;
+  readonly name: string;
+  readonly key: string;
+  readonly color: string;
+  readonly total: number;
+  readonly completed: number;
+}
+
+export interface AgeingIssueDTO {
+  readonly id: string;
+  readonly key: string;
+  readonly title: string;
+  readonly priority: TaskPriority;
+  readonly ageDays: number;
+  readonly dueDate: string | null;
+  readonly assignee: UserDTO | null;
+}
+
+export interface ReportsDTO {
+  readonly rangeDays: number;
+  readonly throughput: readonly ThroughputPointDTO[];
+  readonly createdTotal: number;
+  readonly completedTotal: number;
+  readonly workload: readonly WorkloadRowDTO[];
+  readonly sprints: readonly SprintOutcomeDTO[];
+  readonly projects: readonly ProjectProgressDTO[];
+  readonly openByType: readonly { readonly type: IssueType; readonly count: number }[];
+  readonly ageing: readonly AgeingIssueDTO[];
+}
+
 export interface SprintDTO {
   readonly id: string;
   readonly projectId: string;

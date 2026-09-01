@@ -69,6 +69,15 @@ export async function inviteMember(
     }
   }
 
+  const pending = await repo.findPendingInvitation(
+    input.workspaceId,
+    input.email
+  );
+
+  if (pending) {
+    throw new ConflictError("This user already has a pending invitation.");
+  }
+
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + EXPIRY_DAYS);
 

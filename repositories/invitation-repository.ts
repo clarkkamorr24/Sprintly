@@ -127,3 +127,15 @@ export function findPendingTokensForEmail(email: string) {
     select: { workspaceId: true, token: true },
   });
 }
+
+export function findPendingInvitation(workspaceId: string, email: string) {
+  return db.workspaceInvitation.findFirst({
+    where: {
+      workspaceId,
+      email,
+      status: "PENDING",
+      expiresAt: { gt: new Date() },
+    },
+    select: { id: true },
+  });
+}

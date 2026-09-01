@@ -67,6 +67,7 @@ project, and shows the same project from four angles:
 - **Backlog** — every issue grouped by sprint, with unassigned work last
 - **Sprints** — the two-pane planner for filling a sprint
 - **Issues** — a flat, filterable list of every issue in the workspace
+- **Reports** — delivery trends for the whole workspace (see below)
 
 When a workspace has several projects, a project switcher on the Board, Backlog
 and Sprints pages picks which one you are looking at, and remembers the choice
@@ -108,7 +109,24 @@ dates. It moves through three states:
 - Completing a sprint returns any unfinished issues to the backlog, so nothing
   is silently lost.
 
-### 7. Notifications
+### 7. Reports
+
+**Reports** summarises delivery across the whole workspace, over the last 7, 14,
+30 or 90 days:
+
+- **Created vs completed** — a daily trend, and whether the backlog grew or shrank
+- **Open issues by assignee** — who is carrying what, with urgent and overdue counts,
+  plus anything unassigned
+- **Sprint completion** — issues done against issues committed, per sprint
+- **Progress by project** — percentage complete for each project
+- **Open issues by type** — the Story / Task / Bug / Epic split
+- **Oldest open issues** — what has been sitting the longest
+
+Everything is drawn from the workspace you are viewing, so figures never mix
+between workspaces. Story points appear where issues have them and are otherwise
+left out rather than shown as zero.
+
+### 8. Notifications
 
 The bell in the header shows unread activity. You are notified when someone:
 
@@ -123,7 +141,7 @@ what it refers to — an issue notification opens that issue's dialog directly,
 rather than a generic board, and an invitation opens the accept page. If the
 issue has since been deleted, the dialog says so instead of failing.
 
-### 8. Workspace invitations
+### 9. Workspace invitations
 
 An Owner or Admin invites someone by email from the **Team** page. What happens
 next depends on whether that address already has an account:
@@ -134,14 +152,17 @@ next depends on whether that address already has an account:
 
 An invitation is bound to the address it was sent to, so nobody else can accept
 it, and it expires after 7 days. Pending invitations can be revoked from the
-Team page.
+Team page. Inviting an address that already has an open invitation is refused —
+"This user already has a pending invitation." — both in the form and by a
+partial unique index in the database, so a duplicate cannot be created by any
+route.
 
 **If the email cannot be delivered** — the invitation is still created and still
 valid. The Team page says so and offers a **Copy link** button, so you can send
 the link through any channel you like. It carries the same token and stays tied
 to the invited address, so its security is unchanged.
 
-### 9. What each role can do
+### 10. What each role can do
 
 | Action                                      | Owner | Admin | Member | Viewer |
 | ------------------------------------------- | :---: | :---: | :----: | :----: |
