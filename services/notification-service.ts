@@ -2,6 +2,7 @@ import "server-only";
 
 import { requireUser } from "@/lib/auth/session";
 import { NotFoundError } from "@/lib/errors";
+import { projectPath } from "@/lib/routes";
 import { NotificationType } from "@/lib/generated/prisma/enums";
 import { broadcastNotificationCreated } from "@/lib/realtime/server";
 import * as invitationRepo from "@/repositories/invitation-repository";
@@ -30,15 +31,25 @@ async function workspaceSlugsById(
   return new Map(workspaces.map((w) => [w.id, w.slug]));
 }
 
-async function workspaceSlugsByProject(
+interface ProjectRoute {
+  readonly workspaceSlug: string;
+  readonly projectSlug: string;
+}
+
+async function projectRoutesById(
   projectIds: readonly string[]
-): Promise<ReadonlyMap<string, string>> {
+): Promise<ReadonlyMap<string, ProjectRoute>> {
   const unique = [...new Set(projectIds)];
   if (unique.length === 0) return new Map();
 
   const projects = await workspaceRepo.findWorkspaceSlugsByProject(unique);
 
-  return new Map(projects.map((p) => [p.id, p.workspace.slug]));
+  return new Map(
+    projects.map((p) => [
+      p.id,
+      { workspaceSlug: p.workspace.slug, projectSlug: p.slug },
+    ])
+  );
 }
 
 async function pendingInviteTokens(
@@ -54,7 +65,7 @@ async function pendingInviteTokens(
 function linkFor(
   notification: NotificationRecord,
   slugByWorkspace: ReadonlyMap<string, string>,
-  slugByProject: ReadonlyMap<string, string>,
+  routeByProject: ReadonlyMap<string, ProjectRoute>,
   inviteTokenByWorkspace: ReadonlyMap<string, string>
 ): string | null {
   if (
@@ -65,16 +76,13 @@ function linkFor(
     if (token) return `/invitations/${token}`;
   }
 
-  if (notification.taskId && notification.projectId) {
-    const slug = slugByProject.get(notification.projectId);
-    return slug
-      ? `/${slug}/board?task=${notification.taskId}`
-      : null;
-  }
-
   if (notification.projectId) {
-    const slug = slugByProject.get(notification.projectId);
-    return slug ? `/${slug}/board` : null;
+    const route = routeByProject.get(notification.projectId);
+    if (!route) return null;
+
+    const board = projectPath(route.workspaceSlug, route.projectSlug, "board");
+
+    return notification.taskId ? `${board}?task=${notification.taskId}` : board;
   }
 
   if (notification.workspaceId) {
@@ -88,7 +96,7 @@ function linkFor(
 function toNotificationDTO(
   notification: NotificationRecord,
   slugByWorkspace: ReadonlyMap<string, string>,
-  slugByProject: ReadonlyMap<string, string>,
+  routeByProject: ReadonlyMap<string, ProjectRoute>,
   inviteTokenByWorkspace: ReadonlyMap<string, string>
 ): NotificationDTO {
   return {
@@ -102,7 +110,7 @@ function toNotificationDTO(
     href: linkFor(
       notification,
       slugByWorkspace,
-      slugByProject,
+      routeByProject,
       inviteTokenByWorkspace
     ),
   };
@@ -127,13 +135,13 @@ export async function listNotifications(
     (n) => n.type === NotificationType.WORKSPACE_INVITATION
   );
 
-  const [slugByWorkspace, slugByProject, inviteTokenByWorkspace] = await Promise.all([
+  const [slugByWorkspace, routeByProject, inviteTokenByWorkspace] = await Promise.all([
     workspaceSlugsById(
       notifications
         .map((notification) => notification.workspaceId)
         .filter((id): id is string => id !== null)
     ),
-    workspaceSlugsByProject(
+    projectRoutesById(
       notifications
         .map((notification) => notification.projectId)
         .filter((id): id is string => id !== null)
@@ -148,7 +156,7 @@ export async function listNotifications(
       toNotificationDTO(
         notification,
         slugByWorkspace,
-        slugByProject,
+        routeByProject,
         inviteTokenByWorkspace
       )
     ),

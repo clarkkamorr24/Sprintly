@@ -14,6 +14,7 @@ import {
 } from "@/lib/generated/prisma/enums";
 import * as activityRepo from "@/repositories/activity-repository";
 import * as repo from "@/repositories/board-repository";
+import * as workspaceRepo from "@/repositories/workspace-repository";
 import * as notificationService from "@/services/notification-service";
 import { listSprints } from "@/services/sprint-service";
 import { PAGE_SIZE } from "@/lib/constants";
@@ -127,7 +128,7 @@ export async function getBoardMeta(projectId: string): Promise<{
   const context = await requireProjectAccess(projectId);
 
   const [members, labels] = await Promise.all([
-    repo.findProjectMembers(projectId),
+    workspaceRepo.findWorkspaceMembers(context.workspaceId),
     repo.findWorkspaceLabels(context.workspaceId),
   ]);
 

@@ -185,14 +185,6 @@ export function findWorkspaceLabels(workspaceId: string) {
   });
 }
 
-export function findProjectMembers(projectId: string) {
-  return db.projectMember.findMany({
-    where: { projectId },
-    select: { user: { select: userSelect } },
-    orderBy: { joinedAt: "asc" },
-  });
-}
-
 export function findProjectTasks(projectId: string) {
   return db.task.findMany({
     where: { projectId },

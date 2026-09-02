@@ -14,7 +14,57 @@ import {
 } from "@/components/ui/select";
 import type { TaskDetailDTO, UserDTO } from "@/types/dto";
 
-const UNASSIGNED = "unassigned";
+export const UNASSIGNED = "unassigned";
+
+interface AssigneeSelectProps {
+  readonly members: readonly UserDTO[];
+  readonly value: string;
+  readonly onValueChange: (value: string) => void;
+  readonly disabled?: boolean;
+  readonly id?: string;
+  readonly size?: "sm";
+  readonly className?: string;
+}
+
+/**
+ * The assignee dropdown itself, shared by the task detail picker and the create
+ * form. Members come from the caller so the list always reflects the workspace
+ * the task belongs to.
+ */
+export function AssigneeSelect({
+  members,
+  value,
+  onValueChange,
+  disabled,
+  id,
+  size,
+  className,
+}: AssigneeSelectProps) {
+  const items = [
+    { value: UNASSIGNED, label: "Unassigned" },
+    ...members.map((member) => ({ value: member.id, label: member.name })),
+  ];
+
+  return (
+    <Select
+      items={items}
+      value={value}
+      onValueChange={(next) => onValueChange(String(next))}
+      disabled={disabled}
+    >
+      <SelectTrigger id={id} size={size} aria-label="Assignee" className={className}>
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {items.map((item) => (
+          <SelectItem key={item.value} value={item.value}>
+            {item.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
 
 interface AssigneePickerProps {
   readonly task: TaskDetailDTO;
@@ -47,11 +97,6 @@ export function AssigneePicker({
 
   const current = task.assignees[0]?.id ?? UNASSIGNED;
 
-  const items = [
-    { value: UNASSIGNED, label: "Unassigned" },
-    ...members.map((member) => ({ value: member.id, label: member.name })),
-  ];
-
   const reassign = (value: string) => {
     if (value === current) return;
 
@@ -83,22 +128,13 @@ export function AssigneePicker({
   };
 
   return (
-    <Select
-      items={items}
+    <AssigneeSelect
+      members={members}
       value={current}
-      onValueChange={(value) => reassign(String(value))}
+      onValueChange={reassign}
       disabled={isPending}
-    >
-      <SelectTrigger size="sm" aria-label="Assignee" className="min-w-[150px]">
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        {items.map((item) => (
-          <SelectItem key={item.value} value={item.value}>
-            {item.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+      size="sm"
+      className="min-w-[150px]"
+    />
   );
 }

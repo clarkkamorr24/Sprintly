@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState, useTransition } from "react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Edit02Icon } from "@hugeicons/core-free-icons";
 
 import { getTaskDetailAction } from "@/app/actions/task-actions";
 import { ActivityTimeline } from "@/components/task/activity-timeline";
@@ -10,6 +12,11 @@ import { Button } from "@/components/ui/button";
 import { CommentList } from "@/components/task/comment-list";
 import { SubtaskList } from "@/components/task/subtask-list";
 import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   Dialog,
   DialogContent,
@@ -178,13 +185,25 @@ function TaskDetailContent({
               <div className="flex items-center justify-between gap-2">
                 <h3 className="text-sm font-semibold">Description</h3>
                 {bundle.canEdit && !isEditing ? (
-                  <Button
-                    size="xs"
-                    variant="outline"
-                    onClick={() => setEditing(true)}
-                  >
-                    Edit details
-                  </Button>
+                  <Tooltip>
+                    <TooltipTrigger
+                      render={
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          aria-label="Edit details"
+                          onClick={() => setEditing(true)}
+                        >
+                          <HugeiconsIcon
+                            icon={Edit02Icon}
+                            strokeWidth={2}
+                            className="size-4"
+                          />
+                        </Button>
+                      }
+                    />
+                    <TooltipContent>Edit details</TooltipContent>
+                  </Tooltip>
                 ) : null}
               </div>
 

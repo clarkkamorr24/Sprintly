@@ -5,6 +5,10 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { createTaskAction } from "@/app/actions/task-actions";
+import {
+  AssigneeSelect,
+  UNASSIGNED,
+} from "@/components/task/assignee-picker";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -37,8 +41,6 @@ interface CreateTaskDialogProps {
   readonly onOpenChange: (open: boolean) => void;
 }
 
-const UNASSIGNED = "unassigned";
-
 export function CreateTaskDialog({
   projectId,
   columnId,
@@ -57,11 +59,6 @@ export function CreateTaskDialog({
     value,
     label: PRIORITY_LABEL[value],
   }));
-
-  const assigneeItems = [
-    { value: UNASSIGNED, label: "Unassigned" },
-    ...members.map((member) => ({ value: member.id, label: member.name })),
-  ];
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -173,22 +170,14 @@ export function CreateTaskDialog({
 
             <div className="space-y-2">
               <Label htmlFor="task-assignee">Assignee</Label>
-              <Select
-                items={assigneeItems}
+              <AssigneeSelect
+                id="task-assignee"
+                members={members}
                 value={assigneeId}
-                onValueChange={(value) => setAssigneeId(String(value))}
-              >
-                <SelectTrigger id="task-assignee" className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {assigneeItems.map((item) => (
-                    <SelectItem key={item.value} value={item.value}>
-                      {item.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                onValueChange={setAssigneeId}
+                disabled={isPending}
+                className="w-full"
+              />
             </div>
 
             {formError ? (

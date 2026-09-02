@@ -170,7 +170,7 @@ export function findWorkspaceSlugs(workspaceIds: readonly string[]) {
 export function findWorkspaceSlugsByProject(projectIds: readonly string[]) {
   return db.project.findMany({
     where: { id: { in: [...projectIds] } },
-    select: { id: true, workspace: { select: { slug: true } } },
+    select: { id: true, slug: true, workspace: { select: { slug: true } } },
   });
 }
 
