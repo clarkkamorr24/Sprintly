@@ -41,6 +41,7 @@ export function findTaskOwnership(taskId: string) {
       id: true,
       title: true,
       projectId: true,
+      columnId: true,
       createdById: true,
       assignees: { select: { userId: true } },
     },

@@ -6,6 +6,7 @@ import type { SprintStatus } from "@/lib/generated/prisma/enums";
 const sprintSelect = {
   id: true,
   projectId: true,
+  number: true,
   name: true,
   goal: true,
   status: true,
@@ -43,7 +44,25 @@ export function createSprint(input: {
   startDate: Date;
   endDate: Date;
 }) {
-  return db.sprint.create({ data: input, select: sprintSelect });
+  return db.$transaction(async (tx) => {
+    const highest = await tx.sprint.findFirst({
+      where: { projectId: input.projectId },
+      select: { number: true },
+      orderBy: { number: "desc" },
+    });
+
+    return tx.sprint.create({
+      data: { ...input, number: (highest?.number ?? 0) + 1 },
+      select: sprintSelect,
+    });
+  });
+}
+
+export function findSprintByNumber(projectId: string, sprintNumber: number) {
+  return db.sprint.findUnique({
+    where: { projectId_number: { projectId, number: sprintNumber } },
+    select: sprintSelect,
+  });
 }
 
 export function updateSprint(
@@ -69,11 +88,15 @@ export function deleteSprint(sprintId: string) {
   return db.sprint.delete({ where: { id: sprintId } });
 }
 
-export function assignTaskToSprint(taskId: string, sprintId: string | null) {
+export function assignTaskToSprint(
+  taskId: string,
+  sprintId: string | null,
+  columnId?: string
+) {
   return db.task.update({
     where: { id: taskId },
-    data: { sprintId },
-    select: { id: true, sprintId: true },
+    data: columnId ? { sprintId, columnId } : { sprintId },
+    select: { id: true, sprintId: true, columnId: true },
   });
 }
 

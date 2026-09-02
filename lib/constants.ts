@@ -1,5 +1,6 @@
+export const BACKLOG_COLUMN_NAME = "Backlog";
+
 export const DEFAULT_BOARD_COLUMNS = [
-  { name: "Backlog", isDone: false },
   { name: "To Do", isDone: false },
   { name: "In Progress", isDone: false },
   { name: "Review", isDone: false },

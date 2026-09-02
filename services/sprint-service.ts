@@ -4,6 +4,8 @@ import { requireProjectAccess, requireProjectPermission } from "@/lib/auth/guard
 import { canModifyTask, PERMISSIONS } from "@/lib/auth/permissions";
 import { ConflictError, ForbiddenError, NotFoundError } from "@/lib/errors";
 import { SprintStatus } from "@/lib/generated/prisma/enums";
+import { BACKLOG_COLUMN_NAME } from "@/lib/constants";
+import * as boardRepo from "@/repositories/board-repository";
 import * as repo from "@/repositories/sprint-repository";
 import * as taskRepo from "@/repositories/task-repository";
 import type {
@@ -23,6 +25,7 @@ async function toSprintDTO(sprint: SprintRecord): Promise<SprintDTO> {
   return {
     id: sprint.id,
     projectId: sprint.projectId,
+    number: sprint.number,
     name: sprint.name,
     goal: sprint.goal,
     status: sprint.status,
@@ -142,5 +145,20 @@ export async function assignTaskToSprint(
     }
   }
 
-  await repo.assignTaskToSprint(input.taskId, input.sprintId);
+  const column = await boardRepo.findColumnById(task.columnId);
+  const isBacklog =
+    column?.name.toLowerCase() === BACKLOG_COLUMN_NAME.toLowerCase();
+
+  let columnId: string | undefined;
+
+  if (input.sprintId) {
+    if (!column || isBacklog) {
+      const entry = await boardRepo.findEntryColumn(task.projectId);
+      if (entry) columnId = entry.id;
+    }
+  } else if (column && !column.isDone && !isBacklog) {
+    columnId = (await boardRepo.findOrCreateBacklogColumn(task.projectId)).id;
+  }
+
+  await repo.assignTaskToSprint(input.taskId, input.sprintId, columnId);
 }

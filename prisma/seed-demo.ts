@@ -44,6 +44,7 @@ async function main() {
   const sprint = await db.sprint.create({
     data: {
       projectId: project.id,
+      number: 12,
       name: "Sprint 12",
       goal: "Complete authentication, team invitations, and project permissions.",
       status: "ACTIVE",

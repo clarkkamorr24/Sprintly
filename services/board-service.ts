@@ -14,10 +14,11 @@ import {
 } from "@/lib/generated/prisma/enums";
 import * as activityRepo from "@/repositories/activity-repository";
 import * as repo from "@/repositories/board-repository";
+import * as sprintRepo from "@/repositories/sprint-repository";
 import * as workspaceRepo from "@/repositories/workspace-repository";
 import * as notificationService from "@/services/notification-service";
 import { listSprints } from "@/services/sprint-service";
-import { PAGE_SIZE } from "@/lib/constants";
+import { BACKLOG_COLUMN_NAME, PAGE_SIZE } from "@/lib/constants";
 import type { BoardFilters, WorkspaceIssueFilters } from "@/schemas/task";
 import type {
   CreateColumnInput,
@@ -69,7 +70,10 @@ function startOfToday(): Date {
   return new Date(now.getFullYear(), now.getMonth(), now.getDate());
 }
 
-function buildTaskFilter(filters: BoardFilters): Prisma.TaskWhereInput {
+function buildTaskFilter(
+  filters: BoardFilters,
+  sprintId?: string
+): Prisma.TaskWhereInput {
   const where: Prisma.TaskWhereInput = {};
 
   if (filters.assigneeId) {
@@ -77,6 +81,7 @@ function buildTaskFilter(filters: BoardFilters): Prisma.TaskWhereInput {
   }
   if (filters.priority) where.priority = filters.priority;
   if (filters.labelId) where.labels = { some: { labelId: filters.labelId } };
+  if (sprintId) where.sprintId = sprintId;
   if (filters.search) {
     where.title = { contains: filters.search, mode: "insensitive" };
   }
@@ -107,11 +112,25 @@ export async function getBoard(
 ): Promise<BoardDTO> {
   await requireProjectAccess(projectId);
 
-  const columns = await repo.findBoard(projectId, buildTaskFilter(filters));
+  const selected = filters.sprint
+    ? await sprintRepo.findSprintByNumber(projectId, filters.sprint)
+    : await sprintRepo.findActiveSprint(projectId);
+
+  const unmatched = Boolean(filters.sprint) && !selected;
+
+  const columns = await repo.findBoard(projectId, {
+    ...buildTaskFilter(filters, selected?.id),
+    ...(unmatched ? { id: { in: [] } } : {}),
+  });
+
+  const visible = columns.filter(
+    (column) => column.name !== BACKLOG_COLUMN_NAME
+  );
 
   return {
     projectId,
-    columns: columns.map<BoardColumnDTO>((column) => ({
+    sprintNumber: selected?.number ?? null,
+    columns: visible.map<BoardColumnDTO>((column) => ({
       id: column.id,
       name: column.name,
       position: column.position,

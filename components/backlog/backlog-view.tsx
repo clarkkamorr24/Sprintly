@@ -31,7 +31,6 @@ interface BacklogViewProps {
   readonly canManageSprints: boolean;
   readonly canCreateTask: boolean;
   readonly canComment: boolean;
-  readonly defaultColumnId: string;
 }
 
 export function BacklogView({
@@ -42,7 +41,6 @@ export function BacklogView({
   canManageSprints,
   canCreateTask,
   canComment,
-  defaultColumnId,
 }: BacklogViewProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -84,7 +82,7 @@ export function BacklogView({
             New sprint
           </Button>
         ) : null}
-        {canCreateTask && defaultColumnId ? (
+        {canCreateTask ? (
           <Button onClick={() => setCreateOpen(true)}>
             <HugeiconsIcon icon={Add01Icon} strokeWidth={2.5} data-icon="inline-start" />
             Create issue
@@ -182,7 +180,6 @@ export function BacklogView({
 
       <CreateTaskDialog
         projectId={projectId}
-        columnId={createOpen ? defaultColumnId : null}
         members={members}
         open={createOpen}
         onOpenChange={setCreateOpen}

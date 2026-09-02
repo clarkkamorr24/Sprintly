@@ -35,7 +35,7 @@ import type { UserDTO } from "@/types/dto";
 
 interface CreateTaskDialogProps {
   readonly projectId: string;
-  readonly columnId: string | null;
+  readonly columnId?: string | null;
   readonly members: readonly UserDTO[];
   readonly open: boolean;
   readonly onOpenChange: (open: boolean) => void;
@@ -62,8 +62,6 @@ export function CreateTaskDialog({
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!columnId) return;
-
     const formData = new FormData(event.currentTarget);
     setFieldErrors({});
     setFormError(null);
@@ -73,7 +71,7 @@ export function CreateTaskDialog({
 
       const result = await createTaskAction({
         projectId,
-        columnId,
+        columnId: columnId ?? undefined,
         title: formData.get("title"),
         description: formData.get("description"),
         priority,

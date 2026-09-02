@@ -13,7 +13,7 @@ export const FILTER_KEYS = [
   "due",
 ] as const;
 
-export type FilterKey = (typeof FILTER_KEYS)[number];
+export type FilterKey = (typeof FILTER_KEYS)[number] | "sprint";
 
 export function useBoardFilters() {
   const router = useRouter();
@@ -29,6 +29,7 @@ export function useBoardFilters() {
       priority: read("priority") as BoardFilters["priority"],
       labelId: read("labelId"),
       due: read("due") as BoardFilters["due"],
+      sprint: read("sprint") ? Number(read("sprint")) : undefined,
     };
   }, [searchParams]);
 
@@ -53,8 +54,14 @@ export function useBoardFilters() {
   );
 
   const clearFilters = useCallback(() => {
-    router.replace(pathname, { scroll: false });
-  }, [router, pathname]);
+    const next = new URLSearchParams(searchParams);
+    for (const key of FILTER_KEYS) next.delete(key);
+
+    const query = next.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, {
+      scroll: false,
+    });
+  }, [router, pathname, searchParams]);
 
   return { filters, activeCount, setFilter, clearFilters };
 }

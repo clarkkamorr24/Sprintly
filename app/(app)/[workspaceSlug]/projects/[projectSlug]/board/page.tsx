@@ -9,7 +9,6 @@ import { ProjectSwitcher } from "@/components/project/project-switcher";
 import { SprintBanner } from "@/components/sprint/sprint-banner";
 import { can, PERMISSIONS } from "@/lib/auth/permissions";
 import { resolveProjectBySlug } from "@/lib/auth/workspace-page";
-import { SprintStatus } from "@/lib/generated/prisma/enums";
 import { loadPage } from "@/lib/page-guard";
 import { boardFiltersSchema } from "@/schemas/task";
 import { getBoard, getBoardMeta } from "@/services/board-service";
@@ -37,6 +36,7 @@ export default async function WorkspaceBoardPage(
     priority: single(searchParams.priority),
     labelId: single(searchParams.labelId),
     due: single(searchParams.due),
+    sprint: single(searchParams.sprint),
   });
 
   const scoped = await loadPage(async () => {
@@ -80,11 +80,11 @@ export default async function WorkspaceBoardPage(
   const taskCount = allTasks.length;
   const hasFilters = Object.values(filters).some(Boolean);
 
-  const activeSprint =
-    sprints.find((sprint) => sprint.status === SprintStatus.ACTIVE) ?? null;
+  const selectedSprint =
+    sprints.find((sprint) => sprint.number === board.sprintNumber) ?? null;
 
-  const sprintTasks = activeSprint
-    ? allTasks.filter((task) => task.sprintId === activeSprint.id)
+  const sprintTasks = selectedSprint
+    ? allTasks.filter((task) => task.sprintId === selectedSprint.id)
     : [];
   const doneColumnIds = new Set(
     board.columns.filter((column) => column.isDone).map((column) => column.id)
@@ -108,9 +108,9 @@ export default async function WorkspaceBoardPage(
           />
         </div>
 
-        {activeSprint ? (
+        {selectedSprint ? (
           <SprintBanner
-            sprint={activeSprint}
+            sprint={selectedSprint}
             totalPoints={totalPoints}
             completedPoints={completedPoints}
           />
@@ -158,6 +158,7 @@ export default async function WorkspaceBoardPage(
             projectId={project.id}
             columns={board.columns}
             sprints={sprints}
+            selectedSprintNumber={board.sprintNumber}
             members={meta.members}
             canCreateTask={can(context.role, PERMISSIONS.TASK_CREATE)}
             canComment={can(context.role, PERMISSIONS.COMMENT_CREATE)}

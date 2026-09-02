@@ -43,3 +43,48 @@ export function daysRemaining(endIso: string): number {
 
   return Math.ceil((end.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
 }
+
+function atMidnight(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+export function workDaysRemaining(endIso: string, from: Date = new Date()): number {
+  const cursor = atMidnight(from);
+  const end = atMidnight(new Date(endIso));
+
+  let count = 0;
+
+  while (cursor <= end) {
+    const day = cursor.getDay();
+    if (day !== 0 && day !== 6) count += 1;
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  return count;
+}
+
+interface SprintTiming {
+  readonly status: SprintStatus;
+  readonly startDate: string;
+  readonly endDate: string;
+}
+
+export function sprintDetail(sprint: SprintTiming): string {
+  const parts = [formatDateRange(sprint.startDate, sprint.endDate)];
+
+  if (sprint.status === SprintStatus.ACTIVE) {
+    const days = workDaysRemaining(sprint.endDate);
+
+    parts.push(
+      days > 0
+        ? `${days} work day${days === 1 ? "" : "s"} remaining`
+        : "Past end date"
+    );
+  }
+
+  return parts.join(" · ");
+}
+
+export function sprintSummary(sprint: SprintTiming): string {
+  return `${SPRINT_STATUS_LABEL[sprint.status]} · ${sprintDetail(sprint)}`;
+}

@@ -81,7 +81,6 @@ export default async function WorkspaceBacklogPage(
         canManageSprints={can(context.role, PERMISSIONS.BOARD_MANAGE)}
         canCreateTask={can(context.role, PERMISSIONS.TASK_CREATE)}
         canComment={can(context.role, PERMISSIONS.COMMENT_CREATE)}
-        defaultColumnId={board.columns[0]?.id ?? ""}
       />
     </main>
   );

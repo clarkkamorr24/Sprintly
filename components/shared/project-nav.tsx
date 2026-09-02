@@ -83,19 +83,25 @@ export function ProjectNav({ workspaceSlug, projects }: ProjectNavProps) {
   const pathname = usePathname();
   const selectedProjectSlug = parseRoute(pathname).projectSlug;
 
+  const selected = projects.filter(
+    (project) => project.slug === selectedProjectSlug
+  );
+
   return (
     <>
       <div className="sp-kicker mt-2 px-2.5 pt-1.5 pb-1 text-[10px] tracking-[0.1em]">
-        Projects
+        Project
       </div>
 
-      {projects.length === 0 ? (
+      {selected.length === 0 ? (
         <p className="px-2.5 py-1 text-[12px] text-(--sp-neutral-600)">
-          No projects in this workspace yet.
+          {projects.length === 0
+            ? "No projects in this workspace yet."
+            : "No project selected."}
         </p>
       ) : (
-        projects.map((project) => {
-          const isSelected = project.slug === selectedProjectSlug;
+        selected.map((project) => {
+          const isSelected = true;
 
           return (
             <div key={project.id} className="flex flex-col gap-px">

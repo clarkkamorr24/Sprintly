@@ -39,6 +39,7 @@ export function findCommentWithTask(commentId: string) {
           id: true,
           title: true,
           projectId: true,
+          columnId: true,
           createdById: true,
           assignees: { select: { userId: true } },
         },

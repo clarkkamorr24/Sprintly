@@ -101,6 +101,7 @@ export interface BoardColumnDTO {
 export interface BoardDTO {
   readonly projectId: string;
   readonly columns: readonly BoardColumnDTO[];
+  readonly sprintNumber: number | null;
 }
 
 export interface TaskDetailDTO {
@@ -268,6 +269,7 @@ export interface ReportsDTO {
 export interface SprintDTO {
   readonly id: string;
   readonly projectId: string;
+  readonly number: number;
   readonly name: string;
   readonly goal: string | null;
   readonly status: SprintStatus;

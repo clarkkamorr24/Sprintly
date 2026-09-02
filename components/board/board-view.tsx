@@ -8,6 +8,7 @@ import { deleteTaskAction } from "@/app/actions/task-actions";
 import { CreateTaskDialog } from "@/components/board/create-task-dialog";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { KanbanBoard } from "@/components/board/kanban-board";
+import { SprintSelector } from "@/components/board/sprint-selector";
 import { TaskDetailDialog } from "@/components/task/task-detail-dialog";
 import { useRealtimeChannel } from "@/hooks/use-realtime-channel";
 import { REALTIME_EVENT, projectChannel } from "@/types/realtime";
@@ -18,6 +19,7 @@ interface BoardViewProps {
   readonly projectId: string;
   readonly columns: readonly BoardColumnDTO[];
   readonly sprints: readonly SprintDTO[];
+  readonly selectedSprintNumber: number | null;
   readonly members: readonly UserDTO[];
   readonly canCreateTask: boolean;
   readonly canComment: boolean;
@@ -28,6 +30,7 @@ export function BoardView({
   projectId,
   columns,
   sprints,
+  selectedSprintNumber,
   members,
   canCreateTask,
   canComment,
@@ -115,6 +118,13 @@ export function BoardView({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
+      <div className="border-b border-(--sp-neutral-300) px-4 py-2.5">
+        <SprintSelector
+          sprints={sprints}
+          selectedSprintNumber={selectedSprintNumber}
+        />
+      </div>
+
       <KanbanBoard
         key={boardKey}
         initialColumns={columns}

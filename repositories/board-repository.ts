@@ -1,6 +1,6 @@
 import "server-only";
 
-import { POSITION_STEP } from "@/lib/constants";
+import { BACKLOG_COLUMN_NAME, POSITION_STEP } from "@/lib/constants";
 import { db } from "@/lib/db";
 import type { Prisma } from "@/lib/generated/prisma/client";
 import { userSelect } from "@/repositories/workspace-repository";
@@ -70,6 +70,46 @@ export function findColumnIds(projectId: string) {
 
 export function countColumns(projectId: string) {
   return db.boardColumn.count({ where: { projectId } });
+}
+
+export function findColumnByName(projectId: string, name: string) {
+  return db.boardColumn.findFirst({
+    where: { projectId, name: { equals: name, mode: "insensitive" } },
+    select: { id: true, name: true, position: true, isDone: true },
+  });
+}
+
+export async function findOrCreateBacklogColumn(projectId: string) {
+  const existing = await findColumnByName(projectId, BACKLOG_COLUMN_NAME);
+  if (existing) return existing;
+
+  const first = await db.boardColumn.findFirst({
+    where: { projectId },
+    select: { position: true },
+    orderBy: { position: "asc" },
+  });
+
+  return db.boardColumn.create({
+    data: {
+      projectId,
+      name: BACKLOG_COLUMN_NAME,
+      isDone: false,
+      position: (first?.position ?? POSITION_STEP) - POSITION_STEP,
+    },
+    select: { id: true, name: true, position: true, isDone: true },
+  });
+}
+
+export function findEntryColumn(projectId: string) {
+  return db.boardColumn.findFirst({
+    where: {
+      projectId,
+      isDone: false,
+      NOT: { name: { equals: BACKLOG_COLUMN_NAME, mode: "insensitive" } },
+    },
+    select: { id: true, name: true, position: true, isDone: true },
+    orderBy: { position: "asc" },
+  });
 }
 
 export async function createColumn(projectId: string, name: string) {

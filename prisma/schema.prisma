@@ -252,6 +252,7 @@ model Task {
 model Sprint {
   id        String       @id @default(uuid()) @db.Uuid
   projectId String       @db.Uuid
+  number    Int
   name      String
   goal      String?
   status    SprintStatus @default(PLANNED)
@@ -264,6 +265,7 @@ model Sprint {
   tasks   Task[]
 
   @@unique([projectId, name])
+  @@unique([projectId, number])
   @@index([projectId, status])
   @@index([projectId, startDate])
   @@map("sprint")

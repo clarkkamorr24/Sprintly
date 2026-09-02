@@ -102,9 +102,16 @@ export async function createTask(
     throw new ForbiddenError("You do not have permission to create tasks.");
   }
 
-  const column = await boardRepo.findColumnById(input.columnId);
-  if (!column || column.projectId !== input.projectId) {
-    throw new NotFoundError("Column not found.");
+  let columnId: string;
+
+  if (input.columnId) {
+    const column = await boardRepo.findColumnById(input.columnId);
+    if (!column || column.projectId !== input.projectId) {
+      throw new NotFoundError("Column not found.");
+    }
+    columnId = column.id;
+  } else {
+    columnId = (await boardRepo.findOrCreateBacklogColumn(input.projectId)).id;
   }
 
   await assertMembersAndLabels(
@@ -115,13 +122,13 @@ export async function createTask(
 
   const task = await repo.createTask({
     projectId: input.projectId,
-    columnId: input.columnId,
+    columnId,
     title: input.title,
     description: input.description?.trim() || null,
     type: input.type,
     priority: input.priority,
     storyPoints: input.storyPoints ?? null,
-    position: await boardRepo.nextTaskPosition(input.columnId),
+    position: await boardRepo.nextTaskPosition(columnId),
     dueDate: parseDueDate(input.dueDate),
     createdById: context.user.id,
     assigneeIds: input.assigneeIds,
@@ -134,7 +141,7 @@ export async function createTask(
     taskId: task.id,
     actorId: context.user.id,
     type: ActivityType.TASK_CREATED,
-    metadata: { taskTitle: task.title, column: column.name },
+    metadata: { taskTitle: task.title, column: task.column.name },
   });
 
   await notificationService.notify(
