@@ -1,9 +1,3 @@
-/**
- * Workspace slugs sit at the root of the URL, so any first segment that belongs
- * to a real page would otherwise be swallowed by the [workspaceSlug] route.
- * Slug generation rejects these, and the parser refuses to read them back as a
- * workspace.
- */
 export const RESERVED_SLUGS: readonly string[] = [
   "account",
   "api",

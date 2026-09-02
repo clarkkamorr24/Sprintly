@@ -64,11 +64,6 @@ export const boardFiltersSchema = z.object({
   labelId: uuidSchema.optional(),
   search: z.string().trim().max(120).optional(),
   due: z.enum(["overdue", "today", "week"]).optional(),
-  /**
-   * Per-project sprint number from the URL (?sprint=1). The id is resolved
-   * server-side within the project, so a UUID is never exposed or accepted.
-   * A malformed value is ignored rather than failing the page.
-   */
   sprint: z.coerce
     .number()
     .int()

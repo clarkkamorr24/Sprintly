@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Add01Icon, Menu01Icon, Search01Icon } from "@hugeicons/core-free-icons";
+import { Add01Icon, Menu01Icon } from "@hugeicons/core-free-icons";
 
+import { GlobalSearch } from "@/components/shared/global-search";
 import { useMobileNav } from "@/components/shared/mobile-nav-context";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import { UserMenu } from "@/components/shared/user-menu";
@@ -43,19 +44,10 @@ export function AppHeader({
           <span className="text-[16px] font-extrabold tracking-[-0.02em]">Sprintly</span>
         </Link>
 
-        <div className="hidden max-w-[420px] flex-1 items-center gap-2 border border-(--sp-neutral-300) bg-(--sp-neutral-100) px-2.5 py-1.5 md:flex">
-          <HugeiconsIcon
-            icon={Search01Icon}
-            strokeWidth={2}
-            className="size-[15px] opacity-55"
-          />
-          <span className="flex-1 text-[13px] text-[color-mix(in_srgb,var(--sp-text)_62%,transparent)]">
-            Search issues, projects, people
-          </span>
-          <span className="border border-(--sp-neutral-300) px-[5px] py-px text-[11px] font-extrabold">
-            ⌘K
-          </span>
-        </div>
+        <GlobalSearch
+          workspaceId={activeWorkspaceId}
+          workspaceSlug={active?.slug ?? ""}
+        />
 
         <div className="ml-auto flex items-center gap-2">
           <Button

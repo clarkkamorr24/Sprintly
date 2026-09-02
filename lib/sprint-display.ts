@@ -69,6 +69,35 @@ interface SprintTiming {
   readonly endDate: string;
 }
 
+export type SprintCategory = "past" | "active" | "future";
+
+export const SPRINT_CATEGORY_LABEL: Readonly<Record<SprintCategory, string>> = {
+  past: "Past",
+  active: "Active",
+  future: "Future",
+};
+
+export const SPRINT_CATEGORY_ORDER: readonly SprintCategory[] = [
+  "active",
+  "future",
+  "past",
+];
+
+export function sprintCategory(
+  sprint: SprintTiming,
+  now: Date = new Date()
+): SprintCategory {
+  if (sprint.status === SprintStatus.COMPLETED) return "past";
+  if (sprint.status === SprintStatus.ACTIVE) return "active";
+
+  const today = atMidnight(now);
+
+  if (atMidnight(new Date(sprint.endDate)) < today) return "past";
+  if (atMidnight(new Date(sprint.startDate)) > today) return "future";
+
+  return "active";
+}
+
 export function sprintDetail(sprint: SprintTiming): string {
   const parts = [formatDateRange(sprint.startDate, sprint.endDate)];
 

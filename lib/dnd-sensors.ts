@@ -2,11 +2,6 @@ import { PointerSensor, TouchSensor } from "@dnd-kit/core";
 
 const INTERACTIVE = "button, a, input, textarea, select, [role='menuitem'], [contenteditable='true']";
 
-/**
- * The whole card is draggable, so a press that lands on a control inside it —
- * the menu, the title button, a link — must not start a drag. Anything the
- * card marks with data-no-drag is treated the same way.
- */
 function startsFromInteractiveElement(target: EventTarget | null): boolean {
   if (!(target instanceof Element)) return false;
 

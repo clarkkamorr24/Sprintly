@@ -294,3 +294,32 @@ export interface InvitationDTO {
   readonly expiresAt: string;
   readonly createdAt: string;
 }
+
+export interface SearchIssueDTO {
+  readonly id: string;
+  readonly key: string;
+  readonly title: string;
+  readonly projectName: string;
+  readonly columnName: string;
+  readonly isDone: boolean;
+  readonly href: string;
+}
+
+export interface SearchProjectDTO {
+  readonly id: string;
+  readonly name: string;
+  readonly key: string;
+  readonly color: string;
+  readonly href: string;
+}
+
+export interface SearchMemberDTO {
+  readonly user: UserDTO;
+  readonly role: WorkspaceRole;
+}
+
+export interface SearchResultsDTO {
+  readonly issues: readonly SearchIssueDTO[];
+  readonly projects: readonly SearchProjectDTO[];
+  readonly members: readonly SearchMemberDTO[];
+}

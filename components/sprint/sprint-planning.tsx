@@ -15,7 +15,9 @@ import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -27,6 +29,9 @@ import {
 } from "@/lib/issue-display";
 import {
   formatDateRange,
+  SPRINT_CATEGORY_LABEL,
+  SPRINT_CATEGORY_ORDER,
+  sprintCategory,
   SPRINT_STATUS_LABEL,
   SPRINT_STATUS_STYLE,
 } from "@/lib/sprint-display";
@@ -111,15 +116,25 @@ export function SprintPlanning({
   const [editing, setEditing] = useState<SprintDTO | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const openSprints = sprints.filter(
-    (sprint) => sprint.status !== SprintStatus.COMPLETED
-  );
+  /**
+   * Every sprint is listed, grouped by timeline. Past sprints were previously
+   * hidden here, which made completed work unreachable from planning.
+   */
+  const byCategory = SPRINT_CATEGORY_ORDER.map((category) => ({
+    category,
+    sprints: sprints.filter((sprint) => sprintCategory(sprint) === category),
+  })).filter((group) => group.sprints.length > 0);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
+  const activeSprint =
+    sprints.find((sprint) => sprintCategory(sprint) === "active") ?? null;
+
   const target =
-    openSprints.find((sprint) => sprint.id === selectedId) ??
-    openSprints[0] ??
+    sprints.find((sprint) => sprint.id === selectedId) ??
+    activeSprint ??
+    sprints.find((sprint) => sprintCategory(sprint) === "future") ??
+    sprints[0] ??
     null;
   const targetId = target?.id ?? "";
   const targetTasks =
@@ -162,7 +177,7 @@ export function SprintPlanning({
     });
   };
 
-  if (openSprints.length === 0) {
+  if (sprints.length === 0) {
     return (
       <div className="p-4 lg:p-6">
         <div className="sp-panel p-6 text-center">
@@ -191,18 +206,31 @@ export function SprintPlanning({
     <>
       <div className="flex flex-wrap items-center gap-2 border-b border-(--sp-neutral-300) px-4 py-3 lg:px-6">
         <Select
-          items={openSprints.map((s) => ({ value: s.id, label: s.name }))}
+          items={sprints.map((s) => ({
+            value: s.id,
+            label: `${SPRINT_CATEGORY_LABEL[sprintCategory(s)]} — ${s.name}`,
+          }))}
           value={targetId}
           onValueChange={(value) => setSelectedId(String(value))}
         >
-          <SelectTrigger size="sm" aria-label="Sprint to plan">
+          <SelectTrigger size="sm" aria-label="Sprint to plan" className="min-w-[240px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {openSprints.map((sprint) => (
-              <SelectItem key={sprint.id} value={sprint.id}>
-                {sprint.name}
-              </SelectItem>
+            {byCategory.map((group) => (
+              <SelectGroup key={group.category}>
+                <SelectLabel>
+                  {SPRINT_CATEGORY_LABEL[group.category]}
+                </SelectLabel>
+                {group.sprints.map((sprint) => (
+                  <SelectItem key={sprint.id} value={sprint.id}>
+                    {sprint.name}
+                    <span className="ml-2 text-[11px] opacity-60">
+                      {formatDateRange(sprint.startDate, sprint.endDate)}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectGroup>
             ))}
           </SelectContent>
         </Select>
@@ -302,12 +330,17 @@ export function SprintPlanning({
                 {target?.name ?? "Sprint"}
               </h2>
               {target ? (
-                <Badge
-                  variant="outline"
-                  className={SPRINT_STATUS_STYLE[target.status]}
-                >
-                  {SPRINT_STATUS_LABEL[target.status]}
-                </Badge>
+                <>
+                  <Badge variant="outline" className="shrink-0">
+                    {SPRINT_CATEGORY_LABEL[sprintCategory(target)]}
+                  </Badge>
+                  <Badge
+                    variant="outline"
+                    className={SPRINT_STATUS_STYLE[target.status]}
+                  >
+                    {SPRINT_STATUS_LABEL[target.status]}
+                  </Badge>
+                </>
               ) : null}
               <span className="ml-auto text-[12px] text-[color-mix(in_srgb,var(--sp-text)_55%,transparent)]">
                 {targetTasks.length}{" "}

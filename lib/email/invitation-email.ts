@@ -25,15 +25,6 @@ function classify(message: string): "rate_limited" | "failed" {
   return /rate limit/i.test(message) ? "rate_limited" : "failed";
 }
 
-/**
- * Sends the invitation through Supabase Auth: `inviteUserByEmail` for an
- * address with no account, and a magic link for one that already has one,
- * since Supabase refuses to invite an existing user. Both carry the same
- * invitation URL as the redirect target.
- *
- * Returns whether the email actually went out so the caller can tell the
- * inviter to share the link manually instead of silently reporting success.
- */
 export async function sendInvitationEmail(
   input: InvitationEmailInput
 ): Promise<InvitationEmailResult> {
