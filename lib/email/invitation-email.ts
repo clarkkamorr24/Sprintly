@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 
 export function invitationUrl(token: string): string {
   const base =
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
+    process.env.SITE_URL?.replace(/\/$/, "") ??
     "http://localhost:3000";
 
   return `${base}/invitations/${token}`;
