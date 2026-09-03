@@ -22,6 +22,7 @@ export async function searchWorkspace(
       id: task.id,
       key: `${task.project.key}-${task.number}`,
       title: task.title,
+      type: task.type,
       projectName: task.project.name,
       columnName: task.column.name,
       isDone: task.column.isDone,

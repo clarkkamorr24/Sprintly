@@ -79,6 +79,7 @@ function buildTaskFilter(
   if (filters.assigneeId) {
     where.assignees = { some: { userId: filters.assigneeId } };
   }
+  if (filters.type) where.type = filters.type;
   if (filters.priority) where.priority = filters.priority;
   if (filters.labelId) where.labels = { some: { labelId: filters.labelId } };
   if (sprintId) where.sprintId = sprintId;

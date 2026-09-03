@@ -1,12 +1,8 @@
 "use client";
 
 import { InitialsTile } from "@/components/shared/initials-tile";
+import { IssueTypeIcon } from "@/components/shared/issue-type-icon";
 import { PriorityTag } from "@/components/shared/priority-tag";
-import {
-  ISSUE_TYPE_COLOR,
-  ISSUE_TYPE_LABEL,
-  ISSUE_TYPE_LETTER,
-} from "@/lib/issue-display";
 import type { TaskCardDTO } from "@/types/dto";
 
 interface IssueRowProps {
@@ -20,16 +16,7 @@ export function IssueRow({ task, columnName, onOpen, action }: IssueRowProps) {
   return (
     <tr className="sp-row-hover border-b border-(--sp-neutral-300) last:border-b-0">
       <td className="w-[26px] py-2 pl-3">
-        <span
-          aria-label={ISSUE_TYPE_LABEL[task.type]}
-          className="flex size-[15px] items-center justify-center border text-[9px] font-extrabold"
-          style={{
-            borderColor: ISSUE_TYPE_COLOR[task.type],
-            color: ISSUE_TYPE_COLOR[task.type],
-          }}
-        >
-          {ISSUE_TYPE_LETTER[task.type]}
-        </span>
+        <IssueTypeIcon type={task.type} />
       </td>
 
       <td className="sp-mono-key w-[82px] py-2 text-[12px]">{task.key}</td>

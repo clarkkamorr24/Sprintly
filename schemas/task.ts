@@ -60,6 +60,7 @@ export const deleteTaskSchema = z.object({
 
 export const boardFiltersSchema = z.object({
   assigneeId: uuidSchema.optional(),
+  type: issueTypeSchema.optional(),
   priority: taskPrioritySchema.optional(),
   labelId: uuidSchema.optional(),
   search: z.string().trim().max(120).optional(),

@@ -4,14 +4,10 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { InitialsTile } from "@/components/shared/initials-tile";
+import { IssueTypeIcon } from "@/components/shared/issue-type-icon";
 import { PriorityTag } from "@/components/shared/priority-tag";
 import { TaskDetailDialog } from "@/components/task/task-detail-dialog";
 import { Badge } from "@/components/ui/badge";
-import {
-  ISSUE_TYPE_COLOR,
-  ISSUE_TYPE_LABEL,
-  ISSUE_TYPE_LETTER,
-} from "@/lib/issue-display";
 import { cn } from "@/lib/utils";
 import type { WorkspaceIssueDTO } from "@/types/dto";
 
@@ -40,16 +36,7 @@ export function IssueList({ issues, canComment }: IssueListProps) {
             key={issue.id}
             className="sp-row-hover flex min-w-0 items-center gap-2.5 px-3 py-2.5"
           >
-            <span
-              aria-label={ISSUE_TYPE_LABEL[issue.type]}
-              className="flex size-[15px] shrink-0 items-center justify-center border text-[9px] font-extrabold"
-              style={{
-                borderColor: ISSUE_TYPE_COLOR[issue.type],
-                color: ISSUE_TYPE_COLOR[issue.type],
-              }}
-            >
-              {ISSUE_TYPE_LETTER[issue.type]}
-            </span>
+            <IssueTypeIcon type={issue.type} />
 
             <span className="sp-mono-key hidden shrink-0 text-[11px] text-[color-mix(in_srgb,var(--sp-text)_60%,transparent)] sm:inline">
               {issue.key}

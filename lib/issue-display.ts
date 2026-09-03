@@ -1,25 +1,31 @@
+import { Bug01Icon, File01Icon } from "@hugeicons/core-free-icons";
+
 import { IssueType } from "@/lib/generated/prisma/enums";
 
+export const ISSUE_TYPE_ORDER: readonly IssueType[] = [
+  IssueType.TASK,
+  IssueType.BUG,
+];
+
 export const ISSUE_TYPE_LETTER: Readonly<Record<IssueType, string>> = {
-  [IssueType.STORY]: "S",
   [IssueType.TASK]: "T",
   [IssueType.BUG]: "B",
-  [IssueType.EPIC]: "E",
 };
 
 export const ISSUE_TYPE_LABEL: Readonly<Record<IssueType, string>> = {
-  [IssueType.STORY]: "Story",
   [IssueType.TASK]: "Task",
   [IssueType.BUG]: "Bug",
-  [IssueType.EPIC]: "Epic",
 };
 
 export const ISSUE_TYPE_COLOR: Readonly<Record<IssueType, string>> = {
-  [IssueType.STORY]: "var(--sp-neutral-800)",
   [IssueType.TASK]: "var(--sp-neutral-600)",
   [IssueType.BUG]: "var(--sp-accent)",
-  [IssueType.EPIC]: "var(--sp-neutral-900)",
 };
+
+export const ISSUE_TYPE_ICON = {
+  [IssueType.TASK]: File01Icon,
+  [IssueType.BUG]: Bug01Icon,
+} as const;
 
 export const AVATAR_TONES = [
   "var(--sp-accent)",

@@ -33,6 +33,7 @@ export default async function WorkspaceBoardPage(
   const filters = boardFiltersSchema.parse({
     search: single(searchParams.search),
     assigneeId: single(searchParams.assigneeId),
+    type: single(searchParams.type),
     priority: single(searchParams.priority),
     labelId: single(searchParams.labelId),
     due: single(searchParams.due),
@@ -143,7 +144,6 @@ export default async function WorkspaceBoardPage(
           <div className="border-b border-(--sp-neutral-300) px-4 py-3 lg:px-6">
             <BoardFilters
               members={meta.members}
-              labels={meta.labels}
               resultCount={taskCount}
             />
           </div>

@@ -28,6 +28,7 @@ export default async function WorkspaceIssuesPage(
   const filters = workspaceIssueFiltersSchema.parse({
     search: single(searchParams.search),
     assigneeId: single(searchParams.assigneeId),
+    type: single(searchParams.type),
     priority: single(searchParams.priority),
     projectId: single(searchParams.projectId),
     status: single(searchParams.status),

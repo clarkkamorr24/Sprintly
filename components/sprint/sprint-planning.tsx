@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { assignTaskToSprintAction } from "@/app/actions/sprint-actions";
 import { changeSprintStatusAction } from "@/app/actions/sprint-actions";
 import { InitialsTile } from "@/components/shared/initials-tile";
+import { IssueTypeIcon } from "@/components/shared/issue-type-icon";
 import { PriorityTag } from "@/components/shared/priority-tag";
 import { SprintDialog } from "@/components/sprint/sprint-dialog";
 import { TaskDetailDialog } from "@/components/task/task-detail-dialog";
@@ -22,11 +23,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SprintStatus } from "@/lib/generated/prisma/enums";
-import {
-  ISSUE_TYPE_COLOR,
-  ISSUE_TYPE_LABEL,
-  ISSUE_TYPE_LETTER,
-} from "@/lib/issue-display";
 import {
   formatDateRange,
   SPRINT_CATEGORY_LABEL,
@@ -59,16 +55,7 @@ function PlanningRow({
 }) {
   return (
     <li className="sp-card-hover flex min-w-0 items-center gap-2 border border-(--sp-neutral-300) bg-(--sp-neutral-100) px-3 py-2.5">
-      <span
-        aria-label={ISSUE_TYPE_LABEL[task.type]}
-        className="flex size-[15px] shrink-0 items-center justify-center border text-[9px] font-extrabold"
-        style={{
-          borderColor: ISSUE_TYPE_COLOR[task.type],
-          color: ISSUE_TYPE_COLOR[task.type],
-        }}
-      >
-        {ISSUE_TYPE_LETTER[task.type]}
-      </span>
+      <IssueTypeIcon type={task.type} />
 
       <span className="sp-mono-key hidden shrink-0 text-[11px] text-[color-mix(in_srgb,var(--sp-text)_60%,transparent)] sm:inline">
         {task.key}

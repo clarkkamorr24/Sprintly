@@ -9,12 +9,8 @@ import {
 } from "@hugeicons/core-free-icons";
 
 import { InitialsTile } from "@/components/shared/initials-tile";
+import { IssueTypeIcon } from "@/components/shared/issue-type-icon";
 import { PriorityTag } from "@/components/shared/priority-tag";
-import {
-  ISSUE_TYPE_COLOR,
-  ISSUE_TYPE_LABEL,
-  ISSUE_TYPE_LETTER,
-} from "@/lib/issue-display";
 import { cn, formatDueDate, isOverdue } from "@/lib/utils";
 import type { TaskCardDTO } from "@/types/dto";
 
@@ -47,16 +43,7 @@ export function TaskCard({
       )}
     >
       <div className="mb-[7px] flex items-center gap-1.5">
-        <span
-          aria-label={ISSUE_TYPE_LABEL[task.type]}
-          className="flex size-[15px] items-center justify-center border text-[9px] font-extrabold"
-          style={{
-            borderColor: ISSUE_TYPE_COLOR[task.type],
-            color: ISSUE_TYPE_COLOR[task.type],
-          }}
-        >
-          {ISSUE_TYPE_LETTER[task.type]}
-        </span>
+        <IssueTypeIcon type={task.type} />
         <span className="sp-mono-key text-[11px] text-[color-mix(in_srgb,var(--sp-text)_60%,transparent)]">
           {task.key}
         </span>

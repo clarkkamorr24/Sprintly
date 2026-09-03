@@ -29,10 +29,8 @@ enum TaskPriority {
 }
 
 enum IssueType {
-  STORY
   TASK
   BUG
-  EPIC
 }
 
 enum SprintStatus {

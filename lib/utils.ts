@@ -62,3 +62,7 @@ export function formatAbsoluteDate(iso: string): string {
     year: "numeric",
   })
 }
+
+export function dateInputValue(iso: string | null): string {
+  return iso ? new Date(iso).toISOString().slice(0, 10) : "";
+}

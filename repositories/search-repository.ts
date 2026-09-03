@@ -15,6 +15,7 @@ export function searchTasks(workspaceId: string, query: string) {
       id: true,
       number: true,
       title: true,
+      type: true,
       project: {
         select: { key: true, name: true, slug: true, workspace: { select: { slug: true } } },
       },

@@ -299,6 +299,7 @@ export interface SearchIssueDTO {
   readonly id: string;
   readonly key: string;
   readonly title: string;
+  readonly type: IssueType;
   readonly projectName: string;
   readonly columnName: string;
   readonly isDone: boolean;

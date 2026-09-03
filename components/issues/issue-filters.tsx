@@ -15,12 +15,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useDebouncedCallback } from "@/hooks/use-debounced-callback";
+import { ISSUE_TYPE_LABEL, ISSUE_TYPE_ORDER } from "@/lib/issue-display";
 import { PRIORITY_LABEL, PRIORITY_ORDER } from "@/lib/task-display";
 import type { ProjectDTO } from "@/types/dto";
 
 const ANY = "any";
 
-const FILTER_KEYS = ["search", "projectId", "priority", "status"] as const;
+const FILTER_KEYS = [
+  "search",
+  "projectId",
+  "type",
+  "priority",
+  "status",
+] as const;
 
 interface IssueFiltersProps {
   readonly projects: readonly ProjectDTO[];
@@ -72,6 +79,11 @@ export function IssueFilters({ projects, resultCount }: IssueFiltersProps) {
     })),
   ];
 
+  const typeItems = [
+    { value: ANY, label: "Any type" },
+    ...ISSUE_TYPE_ORDER.map((t) => ({ value: t, label: ISSUE_TYPE_LABEL[t] })),
+  ];
+
   const priorityItems = [
     { value: ANY, label: "Any priority" },
     ...PRIORITY_ORDER.map((p) => ({ value: p, label: PRIORITY_LABEL[p] })),
@@ -118,6 +130,25 @@ export function IssueFilters({ projects, resultCount }: IssueFiltersProps) {
         </SelectTrigger>
         <SelectContent>
           {projectItems.map((item) => (
+            <SelectItem key={item.value} value={item.value}>
+              {item.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <Select
+        items={typeItems}
+        value={read("type")}
+        onValueChange={(value) =>
+          setFilter("type", String(value) === ANY ? undefined : String(value))
+        }
+      >
+        <SelectTrigger size="sm" aria-label="Filter by issue type">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {typeItems.map((item) => (
             <SelectItem key={item.value} value={item.value}>
               {item.label}
             </SelectItem>

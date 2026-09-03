@@ -28,7 +28,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { TaskPriority } from "@/lib/generated/prisma/enums";
+import { IssueType, TaskPriority } from "@/lib/generated/prisma/enums";
+import { ISSUE_TYPE_LABEL, ISSUE_TYPE_ORDER } from "@/lib/issue-display";
 import { PRIORITY_LABEL, PRIORITY_ORDER } from "@/lib/task-display";
 import type { FieldErrors } from "@/types/api";
 import type { UserDTO } from "@/types/dto";
@@ -50,10 +51,16 @@ export function CreateTaskDialog({
 }: CreateTaskDialogProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [type, setType] = useState<IssueType>(IssueType.TASK);
   const [priority, setPriority] = useState<TaskPriority>(TaskPriority.MEDIUM);
   const [assigneeId, setAssigneeId] = useState<string>(UNASSIGNED);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
+
+  const typeItems = ISSUE_TYPE_ORDER.map((value) => ({
+    value,
+    label: ISSUE_TYPE_LABEL[value],
+  }));
 
   const priorityItems = PRIORITY_ORDER.map((value) => ({
     value,
@@ -72,6 +79,7 @@ export function CreateTaskDialog({
       const result = await createTaskAction({
         projectId,
         columnId: columnId ?? undefined,
+        type,
         title: formData.get("title"),
         description: formData.get("description"),
         priority,
@@ -87,6 +95,7 @@ export function CreateTaskDialog({
       }
 
       toast.success("Task created.");
+      setType(IssueType.TASK);
       setPriority(TaskPriority.MEDIUM);
       setAssigneeId(UNASSIGNED);
       onOpenChange(false);
@@ -135,6 +144,26 @@ export function CreateTaskDialog({
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="task-type">Type</Label>
+                <Select
+                  items={typeItems}
+                  value={type}
+                  onValueChange={(value) => setType(value as IssueType)}
+                >
+                  <SelectTrigger id="task-type" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {typeItems.map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="task-priority">Priority</Label>
                 <Select

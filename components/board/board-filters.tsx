@@ -15,22 +15,18 @@ import {
 } from "@/components/ui/select";
 import { useBoardFilters } from "@/hooks/use-board-filters";
 import { useDebouncedCallback } from "@/hooks/use-debounced-callback";
+import { ISSUE_TYPE_LABEL, ISSUE_TYPE_ORDER } from "@/lib/issue-display";
 import { PRIORITY_LABEL, PRIORITY_ORDER } from "@/lib/task-display";
-import type { LabelDTO, UserDTO } from "@/types/dto";
+import type { UserDTO } from "@/types/dto";
 
 const ANY = "any";
 
 interface BoardFiltersProps {
   readonly members: readonly UserDTO[];
-  readonly labels: readonly LabelDTO[];
   readonly resultCount: number;
 }
 
-export function BoardFilters({
-  members,
-  labels,
-  resultCount,
-}: BoardFiltersProps) {
+export function BoardFilters({ members, resultCount }: BoardFiltersProps) {
   const { filters, activeCount, setFilter, clearFilters } = useBoardFilters();
 
   const [searchDraft, setSearchDraft] = useState(filters.search ?? "");
@@ -49,9 +45,9 @@ export function BoardFilters({
     ...PRIORITY_ORDER.map((p) => ({ value: p, label: PRIORITY_LABEL[p] })),
   ];
 
-  const labelItems = [
-    { value: ANY, label: "Any label" },
-    ...labels.map((l) => ({ value: l.id, label: l.name })),
+  const typeItems = [
+    { value: ANY, label: "Any type" },
+    ...ISSUE_TYPE_ORDER.map((t) => ({ value: t, label: ISSUE_TYPE_LABEL[t] })),
   ];
 
   const dueItems = [
@@ -104,6 +100,23 @@ export function BoardFilters({
         </Select>
 
         <Select
+          items={typeItems}
+          value={filters.type ?? ANY}
+          onValueChange={(value) => setFilter("type", toValue(value))}
+        >
+          <SelectTrigger size="sm" aria-label="Filter by issue type">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {typeItems.map((item) => (
+              <SelectItem key={item.value} value={item.value}>
+                {item.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select
           items={priorityItems}
           value={filters.priority ?? ANY}
           onValueChange={(value) => setFilter("priority", toValue(value))}
@@ -119,25 +132,6 @@ export function BoardFilters({
             ))}
           </SelectContent>
         </Select>
-
-        {labels.length > 0 ? (
-          <Select
-            items={labelItems}
-            value={filters.labelId ?? ANY}
-            onValueChange={(value) => setFilter("labelId", toValue(value))}
-          >
-            <SelectTrigger size="sm" aria-label="Filter by label">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {labelItems.map((item) => (
-                <SelectItem key={item.value} value={item.value}>
-                  {item.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        ) : null}
 
         <Select
           items={dueItems}

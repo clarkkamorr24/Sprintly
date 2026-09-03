@@ -6,6 +6,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Search01Icon } from "@hugeicons/core-free-icons";
 
 import { searchWorkspaceAction } from "@/app/actions/search-actions";
+import { IssueTypeIcon } from "@/components/shared/issue-type-icon";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { useDebouncedCallback } from "@/hooks/use-debounced-callback";
 import { workspacePath } from "@/lib/routes";
@@ -126,6 +127,7 @@ export function GlobalSearch({
                 <Section title="Issues">
                   {results.issues.map((issue) => (
                     <ResultButton key={issue.id} onSelect={() => go(issue.href)}>
+                      <IssueTypeIcon type={issue.type} />
                       <span className="sp-mono-key shrink-0 text-[10px] text-(--sp-neutral-600)">
                         {issue.key}
                       </span>

@@ -11,15 +11,15 @@ const db = new PrismaClient({
 });
 
 const ISSUES = [
-  { title: "Implement authentication", type: "STORY", pri: "URGENT", pts: 8, col: "In Progress" },
-  { title: "Team invitations by email", type: "STORY", pri: "HIGH", pts: 5, col: "In Progress" },
+  { title: "Implement authentication", type: "TASK", pri: "URGENT", pts: 8, col: "In Progress" },
+  { title: "Team invitations by email", type: "TASK", pri: "HIGH", pts: 5, col: "In Progress" },
   { title: "Board drag-and-drop persistence", type: "BUG", pri: "URGENT", pts: 3, col: "Review" },
-  { title: "Sprint planning two-pane view", type: "STORY", pri: "HIGH", pts: 8, col: "To Do" },
+  { title: "Sprint planning two-pane view", type: "TASK", pri: "HIGH", pts: 8, col: "To Do" },
   { title: "Project permissions matrix", type: "TASK", pri: "MEDIUM", pts: 5, col: "To Do" },
   { title: "Notification badge live updates", type: "TASK", pri: "MEDIUM", pts: 2, col: "Backlog" },
   { title: "Audit keyboard navigation", type: "TASK", pri: "LOW", pts: 3, col: "Backlog" },
   { title: "Set up design tokens", type: "TASK", pri: "MEDIUM", pts: 2, col: "Done" },
-  { title: "Workspace switcher", type: "STORY", pri: "LOW", pts: 3, col: "Done" },
+  { title: "Workspace switcher", type: "TASK", pri: "LOW", pts: 3, col: "Done" },
 ] as const;
 
 async function main() {

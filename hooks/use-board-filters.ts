@@ -8,6 +8,7 @@ import type { BoardFilters } from "@/schemas/task";
 export const FILTER_KEYS = [
   "search",
   "assigneeId",
+  "type",
   "priority",
   "labelId",
   "due",
@@ -26,6 +27,7 @@ export function useBoardFilters() {
     return {
       search: read("search"),
       assigneeId: read("assigneeId"),
+      type: read("type") as BoardFilters["type"],
       priority: read("priority") as BoardFilters["priority"],
       labelId: read("labelId"),
       due: read("due") as BoardFilters["due"],
