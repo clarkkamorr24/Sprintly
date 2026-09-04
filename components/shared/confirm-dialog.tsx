@@ -15,6 +15,8 @@ interface ConfirmDialogProps {
   readonly title: string;
   readonly description: string;
   readonly confirmLabel?: string;
+  readonly pendingLabel?: string;
+  readonly confirmVariant?: "destructive" | "default";
   readonly isPending?: boolean;
   readonly onConfirm: () => void;
   readonly onOpenChange: (open: boolean) => void;
@@ -25,6 +27,8 @@ export function ConfirmDialog({
   title,
   description,
   confirmLabel = "Delete",
+  pendingLabel = "Deleting…",
+  confirmVariant = "destructive",
   isPending,
   onConfirm,
   onOpenChange,
@@ -46,12 +50,12 @@ export function ConfirmDialog({
             Cancel
           </Button>
           <Button
-            variant="destructive"
+            variant={confirmVariant}
             onClick={onConfirm}
             disabled={isPending}
             autoFocus
           >
-            {isPending ? "Deleting…" : confirmLabel}
+            {isPending ? pendingLabel : confirmLabel}
           </Button>
         </DialogFooter>
       </DialogContent>
