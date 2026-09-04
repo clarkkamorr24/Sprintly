@@ -25,11 +25,6 @@ interface WorkspaceSwitcherProps {
 
 const PORTABLE_SECTIONS = ["projects", "team", "reports", "settings"] as const;
 
-/**
- * Project-scoped sections are not portable: the project slug belongs to the
- * workspace being left. Switching from one of those lands on the new
- * workspace's overview so no project stays selected across the switch.
- */
 function targetPath(pathname: string, slug: string): string {
   const { projectSlug, section } = parseRoute(pathname);
 

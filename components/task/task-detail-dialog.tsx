@@ -14,7 +14,11 @@ import {
   AssigneeSelect,
   UNASSIGNED,
 } from "@/components/task/assignee-picker";
-import { InlineField } from "@/components/task/inline-field";
+import {
+  EditLockProvider,
+  InlineField,
+  useEditLock,
+} from "@/components/task/inline-field";
 import { IssueTypeIcon } from "@/components/shared/issue-type-icon";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { Button } from "@/components/ui/button";
@@ -29,6 +33,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -67,12 +72,13 @@ export function TaskDetailDialog({
     <Dialog open={taskId !== null} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[88vh] overflow-y-auto sm:max-w-[min(56rem,92vw)]">
         {taskId ? (
-          <TaskDetailContent
-            key={taskId}
-            taskId={taskId}
-            canComment={canComment}
-            onMutated={onMutated}
-          />
+          <EditLockProvider key={taskId}>
+            <TaskDetailContent
+              taskId={taskId}
+              canComment={canComment}
+              onMutated={onMutated}
+            />
+          </EditLockProvider>
         ) : null}
       </DialogContent>
     </Dialog>
@@ -93,7 +99,13 @@ function TaskDetailContent({
   const [bundle, setBundle] = useState<TaskDetailBundle | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setSaving] = useState(false);
-  const [isEditingDescription, setEditingDescription] = useState(false);
+  const titleLock = useEditLock("task-title");
+  const descriptionLock = useEditLock("task-description");
+
+  const isEditingTitle = titleLock.isEditing;
+  const isEditingDescription = descriptionLock.isEditing;
+  const closeTitle = titleLock.close;
+  const closeDescription = descriptionLock.close;
   const [, startTransition] = useTransition();
 
   const [draftType, setDraftType] = useState<IssueType>(IssueType.TASK);
@@ -102,6 +114,7 @@ function TaskDetailContent({
   );
   const [draftDueDate, setDraftDueDate] = useState("");
   const [draftDescription, setDraftDescription] = useState("");
+  const [draftTitle, setDraftTitle] = useState("");
   const [draftAssignee, setDraftAssignee] = useState<string>(UNASSIGNED);
 
   const load = useCallback((id: string) => {
@@ -121,6 +134,7 @@ function TaskDetailContent({
       setDraftPriority(loaded.priority);
       setDraftDueDate(dateInputValue(loaded.dueDate));
       setDraftDescription(loaded.description ?? "");
+      setDraftTitle(loaded.title);
       setDraftAssignee(loaded.assignees[0]?.id ?? UNASSIGNED);
     });
   }, []);
@@ -130,19 +144,33 @@ function TaskDetailContent({
   }, [taskId, load]);
 
   useEffect(() => {
-    if (!isEditingDescription) return;
+    if (!isEditingDescription && !isEditingTitle) return;
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
 
       event.stopPropagation();
-      setDraftDescription(bundle?.task.description ?? "");
-      setEditingDescription(false);
+
+      if (isEditingTitle) {
+        setDraftTitle(bundle?.task.title ?? "");
+        closeTitle();
+      }
+
+      if (isEditingDescription) {
+        setDraftDescription(bundle?.task.description ?? "");
+        closeDescription();
+      }
     };
 
     document.addEventListener("keydown", onKeyDown, true);
     return () => document.removeEventListener("keydown", onKeyDown, true);
-  }, [isEditingDescription, bundle]);
+  }, [
+    isEditingDescription,
+    isEditingTitle,
+    bundle,
+    closeTitle,
+    closeDescription,
+  ]);
 
   const refresh = () => {
     load(taskId);
@@ -171,6 +199,7 @@ function TaskDetailContent({
 
   const saveField = async (
     patch: Partial<{
+      title: string;
       type: IssueType;
       priority: TaskPriority;
       dueDate: string | null;
@@ -184,7 +213,7 @@ function TaskDetailContent({
 
     const result = await updateTaskAction({
       taskId: task.id,
-      title: task.title,
+      title: patch.title ?? task.title,
       description: patch.description ?? task.description ?? "",
       type: patch.type ?? task.type,
       priority: patch.priority ?? task.priority,
@@ -227,15 +256,71 @@ function TaskDetailContent({
       ) : (
         <>
           <DialogHeader>
-            <DialogTitle className="flex items-start gap-2 pr-6 text-left">
-              <span className="shrink-0">
-                <IssueTypeIcon type={task.type} />
+            <DialogTitle className="flex gap-2.5 pr-6 text-left text-[1.45rem] leading-[1.15] items-center">
+              <span className={cn(isEditingTitle ? "-mt-8" : "mt-0.5 shrink-0")}>
+                <IssueTypeIcon type={task.type} size="lg" />
               </span>
-              <span className="min-w-0">{task.title}</span>
+
+              {isEditingTitle ? (
+                <span className="min-w-0 flex-1 space-y-2">
+                  <Input
+                    value={draftTitle}
+                    aria-label="Task title"
+                    autoFocus
+                    disabled={isSaving}
+                    className="h-auto rounded-none px-1 py-0.5 font-heading text-[1.45rem] leading-[1.15] tracking-[-0.03em] md:text-[1.45rem]"
+                    onChange={(event) => setDraftTitle(event.target.value)}
+                  />
+                  <span className="flex items-center gap-1.5">
+                    <Button
+                      size="xs"
+                      disabled={isSaving || !draftTitle.trim()}
+                      onClick={async () => {
+                        const ok = await saveField({ title: draftTitle.trim() });
+                        if (ok) titleLock.close();
+                      }}
+                    >
+                      {isSaving ? "Saving…" : "Save"}
+                    </Button>
+                    <Button
+                      size="xs"
+                      variant="ghost"
+                      disabled={isSaving}
+                      onClick={() => {
+                        setDraftTitle(task.title);
+                        titleLock.close();
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </span>
+                </span>
+              ) : bundle.canEdit ? (
+                <button
+                  type="button"
+                  onClick={titleLock.open}
+                  disabled={titleLock.isLocked}
+                  aria-label="Edit title"
+                  className={cn(
+                    "min-w-0 flex-1 px-1 py-0.5 text-left outline-none transition-colors",
+                    "focus-visible:ring-[3px] focus-visible:ring-ring/50",
+                    titleLock.isLocked
+                      ? "cursor-default opacity-45"
+                      : "hover:bg-[color-mix(in_srgb,var(--sp-text)_8%,transparent)]"
+                  )}
+                >
+                  {task.title}
+                </button>
+              ) : (
+                <span className="min-w-0">{task.title}</span>
+              )}
             </DialogTitle>
-            <DialogDescription className="text-left">
-              {task.key} · in {task.column.name} · created by{" "}
-              {task.createdBy.name}
+            <DialogDescription className="flex flex-wrap items-center gap-x-2 gap-y-1 text-left text-[13px]">
+              <span className="sp-mono-key text-(--sp-accent)">{task.key}</span>
+              <span aria-hidden className="text-(--sp-neutral-400)">/</span>
+              <span>{task.column.name}</span>
+              <span aria-hidden className="text-(--sp-neutral-400)">/</span>
+              <span>created by {task.createdBy.name}</span>
             </DialogDescription>
           </DialogHeader>
 
@@ -244,7 +329,8 @@ function TaskDetailContent({
               <AccordionSection
                 title="Description"
                 summary={task.description ? "Has content" : "Empty"}
-              >
+                className="sp-panel-accent"
+             >
                 {isEditingDescription ? (
                 <div className="space-y-2">
                   <Textarea
@@ -252,6 +338,7 @@ function TaskDetailContent({
                     value={draftDescription}
                     aria-label="Description"
                     disabled={isSaving}
+                    className="px-1 py-0.5 text-sm md:text-sm"
                     onChange={(event) => setDraftDescription(event.target.value)}
                   />
                   <div className="flex items-center gap-1.5">
@@ -262,7 +349,7 @@ function TaskDetailContent({
                         const ok = await saveField({
                           description: draftDescription,
                         });
-                        if (ok) setEditingDescription(false);
+                        if (ok) descriptionLock.close();
                       }}
                     >
                       {isSaving ? "Saving…" : "Save"}
@@ -273,7 +360,7 @@ function TaskDetailContent({
                       disabled={isSaving}
                       onClick={() => {
                         setDraftDescription(task.description ?? "");
-                        setEditingDescription(false);
+                        descriptionLock.close();
                       }}
                     >
                       Cancel
@@ -283,12 +370,15 @@ function TaskDetailContent({
               ) : bundle.canEdit ? (
                 <button
                   type="button"
-                  onClick={() => setEditingDescription(true)}
+                  onClick={descriptionLock.open}
+                  disabled={descriptionLock.isLocked}
                   aria-label="Edit description"
                   className={cn(
                     "group flex w-full items-start gap-1.5 px-1 py-0.5 text-left outline-none transition-colors",
-                    "hover:bg-[color-mix(in_srgb,var(--sp-text)_8%,transparent)]",
-                    "focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                    "focus-visible:ring-[3px] focus-visible:ring-ring/50",
+                    descriptionLock.isLocked
+                      ? "cursor-default opacity-45"
+                      : "hover:bg-[color-mix(in_srgb,var(--sp-text)_8%,transparent)]"
                   )}
                 >
                   <span
@@ -337,13 +427,18 @@ function TaskDetailContent({
             <Separator />
 
             <ActivityTimeline
+              taskId={task.id}
               entries={bundle.activity.items}
               total={bundle.activity.total}
             />
           </div>
 
           <aside className="min-w-0 space-y-4 lg:border-l lg:border-(--sp-neutral-300) lg:pl-5">
-            <AccordionSection title="Details" summary={detailsSummary}>
+            <AccordionSection
+              title="Details"
+              summary={detailsSummary}
+              className="sp-panel-accent"
+            >
               <dl className="text-sm">
                 <InlineField
                   label="Type"
@@ -403,7 +498,7 @@ function TaskDetailContent({
                     </Select>
                   }
                 >
-                  <Badge variant="outline" className={PRIORITY_STYLE[task.priority]}>
+                  <Badge variant="outline" className={cn("rounded-full", PRIORITY_STYLE[task.priority])}>
                     {PRIORITY_LABEL[task.priority]}
                   </Badge>
                 </InlineField>
@@ -415,13 +510,10 @@ function TaskDetailContent({
                   onSave={() => saveField({ dueDate: draftDueDate || null })}
                   onCancel={() => setDraftDueDate(dateInputValue(task.dueDate))}
                   editor={
-                    <Input
-                      type="date"
+                    <DatePicker
                       value={draftDueDate}
-                      aria-label="Due date"
-                      autoFocus
-                      className="h-8 w-auto"
-                      onChange={(event) => setDraftDueDate(event.target.value)}
+                      onValueChange={setDraftDueDate}
+                      disabled={isSaving}
                     />
                   }
                 >
@@ -458,9 +550,11 @@ function TaskDetailContent({
                   }
                 >
                   {task.assignees[0] ? (
-                    <span className="flex items-center gap-1.5">
+                    <span className="flex min-w-0 items-center gap-1.5">
                       <UserAvatar user={task.assignees[0]} size="sm" />
-                      {task.assignees[0].name}
+                      <span className="truncate">
+                        {task.assignees[0].name}
+                      </span>
                     </span>
                   ) : (
                     <span className="text-muted-foreground">Unassigned</span>
@@ -468,15 +562,15 @@ function TaskDetailContent({
                 </InlineField>
 
                 <div className="grid grid-cols-[minmax(88px,120px)_1fr] items-center gap-3 py-1">
-                  <dt className="text-[13px] text-muted-foreground">Status</dt>
-                  <dd className="min-w-0 text-[13px] text-muted-foreground">
+                  <dt className="sp-kicker text-[10.5px]">Status</dt>
+                  <dd className="min-w-0 text-[13.5px]">
                     {task.column.name}
                   </dd>
                 </div>
 
                 <div className="grid grid-cols-[minmax(88px,120px)_1fr] items-center gap-3 py-1">
-                  <dt className="text-[13px] text-muted-foreground">Reporter</dt>
-                  <dd className="min-w-0 text-[13px] text-muted-foreground">
+                  <dt className="sp-kicker text-[10.5px]">Reporter</dt>
+                  <dd className="min-w-0 text-[13.5px]">
                     {task.createdBy.name}
                   </dd>
                 </div>

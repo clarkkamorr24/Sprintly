@@ -49,7 +49,7 @@ export default async function WorkspaceIssuesPage(
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 space-y-5 px-4 py-8 lg:px-6">
       <header className="space-y-1">
-        <h1 className="text-[32px]">Issues</h1>
+        <h1>Issues</h1>
         <p className="text-sm text-[color-mix(in_srgb,var(--sp-text)_65%,transparent)]">
           {issues.total} {issues.total === 1 ? "issue" : "issues"} across this
           workspace.

@@ -94,12 +94,6 @@ export function AppSidebar({
 
   const currentSlug = parseRoute(pathname).workspaceSlug ?? activeWorkspaceSlug;
 
-  /**
-   * This layout does not re-render on client-side navigation, so `projects` can
-   * still hold the previous workspace's list right after a switch. Rendering
-   * only the ones belonging to the workspace in the URL keeps stale entries out
-   * until the next full load.
-   */
   const visibleProjects = projects.filter(
     (project) => project.workspaceSlug === currentSlug
   );
@@ -134,7 +128,7 @@ export function AppSidebar({
         className="flex items-center gap-2 outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
       >
         <SprintlyMark />
-        <span className="text-[18px] font-extrabold tracking-[-0.02em]">Sprintly</span>
+        <span className="font-heading text-[19px] font-extrabold tracking-[-0.03em]">Sprintly</span>
       </Link>
     </div>
   );

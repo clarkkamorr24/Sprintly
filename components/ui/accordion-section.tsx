@@ -26,7 +26,7 @@ export function AccordionSection({
 
   return (
     <section
-      className={cn("border border-(--sp-neutral-300)", className)}
+      className={cn("sp-panel", className)}
     >
       <h3>
         <button
@@ -43,9 +43,9 @@ export function AccordionSection({
           <HugeiconsIcon
             icon={isOpen ? ArrowDown01Icon : ArrowRight01Icon}
             strokeWidth={2}
-            className="size-4 shrink-0 opacity-60"
+            className="size-4 shrink-0 opacity-50"
           />
-          <span className="text-sm font-semibold">{title}</span>
+          <span className="sp-section-label">{title}</span>
 
           {!isOpen && summary ? (
             <span className="min-w-0 flex-1 truncate text-[12px] text-muted-foreground">

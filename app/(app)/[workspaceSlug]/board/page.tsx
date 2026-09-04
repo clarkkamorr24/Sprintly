@@ -5,10 +5,6 @@ import { can, PERMISSIONS } from "@/lib/auth/permissions";
 import { resolveWorkspaceProjectScope } from "@/lib/auth/workspace-page";
 import { loadPage } from "@/lib/page-guard";
 
-/**
- * The project pages moved under /projects/<projectSlug>/. This keeps the older
- * links working by sending them to the workspace's selected project.
- */
 export default async function LegacyRedirect(
   props: PageProps<"/[workspaceSlug]/board">
 ) {

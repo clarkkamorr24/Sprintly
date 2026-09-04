@@ -25,7 +25,7 @@ export default async function WorkspaceProjectsPage(
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 space-y-6 px-4 py-8 lg:px-6">
       <header className="space-y-1">
-        <h1 className="text-[32px]">Projects</h1>
+        <h1>Projects</h1>
         <p className="text-sm text-[color-mix(in_srgb,var(--sp-text)_65%,transparent)]">
           {projects.length} {projects.length === 1 ? "project" : "projects"} in
           this workspace.

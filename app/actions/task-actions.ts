@@ -16,10 +16,15 @@ import { uuidSchema } from "@/schemas/common";
 import {
   createTaskSchema,
   deleteTaskSchema,
+  listTaskActivitySchema,
   updateTaskSchema,
 } from "@/schemas/task";
-import type { ApiResponse } from "@/types/api";
-import type { TaskDetailBundle, TaskDetailDTO } from "@/types/dto";
+import type { ApiResponse, Paginated } from "@/types/api";
+import type {
+  ActivityEntryDTO,
+  TaskDetailBundle,
+  TaskDetailDTO,
+} from "@/types/dto";
 
 export async function createTaskAction(
   input: unknown
@@ -102,5 +107,19 @@ export async function getTaskDetailAction(
       comments,
       activity,
     };
+  });
+}
+
+export async function listTaskActivityAction(
+  input: unknown
+): Promise<ApiResponse<Paginated<ActivityEntryDTO>>> {
+  return handleAction("listTaskActivityAction", async () => {
+    const data = parseInput(listTaskActivitySchema, input);
+
+    return activityService.listTaskActivity({
+      taskId: data.taskId,
+      page: data.page,
+      pageSize: PAGE_SIZE.ACTIVITY,
+    });
   });
 }

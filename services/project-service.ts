@@ -71,10 +71,6 @@ function slugify(name: string): string {
   );
 }
 
-/**
- * Slugs are unique per workspace, so the same project name can exist in two
- * different workspaces and still read cleanly in the URL.
- */
 async function nextProjectSlug(
   workspaceId: string,
   name: string

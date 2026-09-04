@@ -58,6 +58,11 @@ export const deleteTaskSchema = z.object({
   taskId: uuidSchema,
 });
 
+export const listTaskActivitySchema = z.object({
+  taskId: uuidSchema,
+  page: z.coerce.number().int().min(1).default(1),
+});
+
 export const boardFiltersSchema = z.object({
   assigneeId: uuidSchema.optional(),
   type: issueTypeSchema.optional(),
@@ -82,5 +87,6 @@ export const workspaceIssueFiltersSchema = boardFiltersSchema.extend({
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;
 export type UpdateTaskInput = z.infer<typeof updateTaskSchema>;
 export type DeleteTaskInput = z.infer<typeof deleteTaskSchema>;
+export type ListTaskActivityInput = z.infer<typeof listTaskActivitySchema>;
 export type BoardFilters = z.infer<typeof boardFiltersSchema>;
 export type WorkspaceIssueFilters = z.infer<typeof workspaceIssueFiltersSchema>;

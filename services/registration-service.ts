@@ -99,9 +99,6 @@ export async function provisionNewUser(input: {
   });
 
   if (existing > 0 || accepted > 0) {
-    // Someone who joined through an invitation lands in a workspace that is
-    // already set up, and the onboarding flow only makes sense for an owner
-    // configuring their own, so skip it for them.
     await userRepo.markOnboarded(input.userId);
 
     return;

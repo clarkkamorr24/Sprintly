@@ -17,7 +17,7 @@ export function AuthShell({
       <div className="w-full max-w-100">
         <div className="mb-5.5 flex items-center gap-2">
           <SprintlyMark />
-          <span className="text-[18px] font-extrabold tracking-[-0.02em]">
+          <span className="font-heading text-[19px] font-extrabold tracking-[-0.03em]">
             Sprintly
           </span>
         </div>

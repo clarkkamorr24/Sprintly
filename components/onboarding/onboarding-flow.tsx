@@ -164,7 +164,7 @@ export function OnboardingFlow({
     <div className="w-full max-w-[460px] animate-in fade-in slide-in-from-bottom-2 duration-300 ease-out">
       <div className="mb-5.5 flex items-center gap-2">
         <SprintlyMark />
-        <span className="text-[18px] font-extrabold tracking-[-0.02em]">
+        <span className="font-heading text-[19px] font-extrabold tracking-[-0.03em]">
           Sprintly
         </span>
       </div>

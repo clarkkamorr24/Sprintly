@@ -62,7 +62,7 @@ export default async function WorkspaceSprintsPage(
         <div className="mb-1.5">
           <ProjectSwitcher projects={projects} activeProjectId={project.id} />
         </div>
-        <h1 className="text-[32px]">Sprint planning</h1>
+        <h1>Sprint planning</h1>
       </div>
 
       <SprintPlanning

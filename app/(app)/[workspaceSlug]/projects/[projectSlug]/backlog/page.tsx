@@ -69,7 +69,7 @@ export default async function WorkspaceBacklogPage(
               activeProjectId={project.id}
             />
           </div>
-          <h1 className="text-[32px]">Backlog</h1>
+          <h1>Backlog</h1>
         </div>
       </header>
 

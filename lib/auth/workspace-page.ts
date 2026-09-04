@@ -28,11 +28,6 @@ export async function resolveWorkspaceProjectScope(
   return { workspace, project, context };
 }
 
-/**
- * Resolves a project from its slug within the workspace. The slug is only ever
- * looked up inside the workspace the caller has access to, so a project slug
- * from another workspace resolves to nothing rather than leaking across.
- */
 export async function resolveProjectBySlug(
   workspaceSlug: string,
   projectSlug: string

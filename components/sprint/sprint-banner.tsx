@@ -29,7 +29,7 @@ export function SprintBanner({
   return (
     <div className="flex flex-wrap items-end gap-5">
       <div className="min-w-0 flex-1">
-        <h1 className="mb-1 text-[32px]">{sprint.name}</h1>
+        <h1 className="mb-1">{sprint.name}</h1>
         <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[13px]">
           <Badge
             className={cn(

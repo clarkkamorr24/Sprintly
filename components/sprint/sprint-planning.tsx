@@ -104,12 +104,20 @@ export function SprintPlanning({
   const [dialogOpen, setDialogOpen] = useState(false);
 
   /**
-   * Every sprint is listed, grouped by timeline. Past sprints were previously
-   * hidden here, which made completed work unreachable from planning.
+   * Groups stay in timeline order (active, future, past) while the sprints
+   * inside each are sorted by name. `numeric` keeps "Sprint 2" before
+   * "Sprint 10", which a plain string compare would invert.
    */
   const byCategory = SPRINT_CATEGORY_ORDER.map((category) => ({
     category,
-    sprints: sprints.filter((sprint) => sprintCategory(sprint) === category),
+    sprints: [...sprints]
+      .filter((sprint) => sprintCategory(sprint) === category)
+      .sort((a, b) =>
+        a.name.localeCompare(b.name, undefined, {
+          numeric: true,
+          sensitivity: "base",
+        })
+      ),
   })).filter((group) => group.sprints.length > 0);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -212,6 +220,14 @@ export function SprintPlanning({
                 {group.sprints.map((sprint) => (
                   <SelectItem key={sprint.id} value={sprint.id}>
                     {sprint.name}
+                    {sprintCategory(sprint) === "past" ? (
+                      <Badge
+                        variant="outline"
+                        className="ml-1.5 shrink-0 px-1.5 py-0 text-[10px]"
+                      >
+                        Past
+                      </Badge>
+                    ) : null}
                     <span className="ml-2 text-[11px] opacity-60">
                       {formatDateRange(sprint.startDate, sprint.endDate)}
                     </span>

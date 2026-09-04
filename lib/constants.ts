@@ -12,7 +12,7 @@ export const POSITION_STEP = 1000;
 export const PAGE_SIZE = {
   DEFAULT: 20,
   COMMENTS: 20,
-  ACTIVITY: 20,
+  ACTIVITY: 10,
   NOTIFICATIONS: 20,
   MAX: 100,
 } as const;

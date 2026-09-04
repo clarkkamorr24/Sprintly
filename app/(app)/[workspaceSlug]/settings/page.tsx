@@ -50,7 +50,7 @@ export default async function WorkspaceSettingsPage(
           </Link>{" "}
           / Settings
         </nav>
-        <h1 className="text-[32px]">Workspace settings</h1>
+        <h1>Workspace settings</h1>
       </header>
 
       <section aria-labelledby="general-heading" className="space-y-3">

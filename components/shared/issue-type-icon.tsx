@@ -13,12 +13,22 @@ import {
 } from "@/lib/issue-display";
 import { cn } from "@/lib/utils";
 
+const SIZES = {
+  sm: { box: "size-[15px]", glyph: "size-[13px]" },
+  lg: { box: "size-[22px]", glyph: "size-[20px]" },
+} as const;
+
 interface IssueTypeIconProps {
   readonly type: IssueType;
+  readonly size?: keyof typeof SIZES;
   readonly className?: string;
 }
 
-export function IssueTypeIcon({ type, className }: IssueTypeIconProps) {
+export function IssueTypeIcon({
+  type,
+  size = "sm",
+  className,
+}: IssueTypeIconProps) {
   const label = ISSUE_TYPE_LABEL[type];
 
   return (
@@ -28,7 +38,8 @@ export function IssueTypeIcon({ type, className }: IssueTypeIconProps) {
           <span
             aria-label={label}
             className={cn(
-              "flex size-[15px] shrink-0 items-center justify-center",
+              "flex shrink-0 items-center justify-center",
+              SIZES[size].box,
               className
             )}
             style={{ color: ISSUE_TYPE_COLOR[type] }}
@@ -36,7 +47,7 @@ export function IssueTypeIcon({ type, className }: IssueTypeIconProps) {
             <HugeiconsIcon
               icon={ISSUE_TYPE_ICON[type]}
               strokeWidth={2}
-              className="size-[13px]"
+              className={SIZES[size].glyph}
             />
           </span>
         }

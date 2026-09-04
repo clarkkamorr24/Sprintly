@@ -13,7 +13,6 @@ const MAX_SUGGESTIONS = 6;
 interface MentionTextareaProps {
   readonly value: string;
   readonly members: readonly UserDTO[];
-  /** Excluded from suggestions — you cannot mention yourself. */
   readonly currentUserId: string;
   readonly placeholder?: string;
   readonly disabled?: boolean;
@@ -37,7 +36,6 @@ export function MentionTextarea({
   const [active, setActive] = useState(0);
   const [dismissed, setDismissed] = useState(false);
 
-  // The token being typed: an "@" that starts a word, up to the caret.
   const query = useMemo(() => {
     if (dismissed) return null;
 

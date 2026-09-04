@@ -118,7 +118,7 @@ export default async function WorkspaceBoardPage(
         ) : (
           <div className="flex flex-wrap items-end gap-4">
             <div className="min-w-0 flex-1">
-              <h1 className="text-[32px]">{project.name}</h1>
+              <h1>{project.name}</h1>
             </div>
 
             {can(scoped.context.role, PERMISSIONS.PROJECT_DELETE) ? (

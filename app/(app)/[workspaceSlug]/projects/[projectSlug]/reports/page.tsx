@@ -40,7 +40,7 @@ export default async function WorkspaceReportsPage(
     <main className="mx-auto w-full max-w-6xl flex-1 space-y-5 px-4 py-8 lg:px-6">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="text-[32px]">Reports</h1>
+          <h1>Reports</h1>
           <p className="text-sm text-[color-mix(in_srgb,var(--sp-text)_65%,transparent)]">
             Delivery trends across this workspace.
           </p>

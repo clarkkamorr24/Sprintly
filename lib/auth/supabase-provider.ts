@@ -45,10 +45,6 @@ export const supabaseAuthProvider: AuthProvider = {
       db.user.findUnique({ where: { email }, select: { id: true } }),
     ]);
 
-    // The same email can come back under a new auth id if the account was
-    // deleted and recreated in the auth provider. Rebinding the existing row to
-    // the new id keeps the user's workspaces and history instead of colliding
-    // on the email unique constraint.
     if (!byId && byEmail) {
       await db.user.update({
         where: { email },
