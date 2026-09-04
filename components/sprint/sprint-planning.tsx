@@ -9,6 +9,7 @@ import { changeSprintStatusAction } from "@/app/actions/sprint-actions";
 import { InitialsTile } from "@/components/shared/initials-tile";
 import { IssueTypeIcon } from "@/components/shared/issue-type-icon";
 import { PriorityTag } from "@/components/shared/priority-tag";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { SprintDialog } from "@/components/sprint/sprint-dialog";
 import { TaskDetailDialog } from "@/components/task/task-detail-dialog";
 import { Badge } from "@/components/ui/badge";
@@ -102,12 +103,8 @@ export function SprintPlanning({
   const [openTaskId, setOpenTaskId] = useState<string | null>(null);
   const [editing, setEditing] = useState<SprintDTO | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [confirmComplete, setConfirmComplete] = useState(false);
 
-  /**
-   * Groups stay in timeline order (active, future, past) while the sprints
-   * inside each are sorted by name. `numeric` keeps "Sprint 2" before
-   * "Sprint 10", which a plain string compare would invert.
-   */
   const byCategory = SPRINT_CATEGORY_ORDER.map((category) => ({
     category,
     sprints: [...sprints]
@@ -172,6 +169,26 @@ export function SprintPlanning({
     });
   };
 
+  const complete = () => {
+    if (!target) return;
+
+    startTransition(async () => {
+      const result = await changeSprintStatusAction({
+        sprintId: target.id,
+        status: SprintStatus.COMPLETED,
+      });
+
+      if (!result.success) {
+        toast.error(result.error.message);
+        return;
+      }
+
+      setConfirmComplete(false);
+      toast.success(`Completed ${target.name}.`);
+      router.refresh();
+    });
+  };
+
   if (sprints.length === 0) {
     return (
       <div className="p-4 lg:p-6">
@@ -220,14 +237,6 @@ export function SprintPlanning({
                 {group.sprints.map((sprint) => (
                   <SelectItem key={sprint.id} value={sprint.id}>
                     {sprint.name}
-                    {sprintCategory(sprint) === "past" ? (
-                      <Badge
-                        variant="outline"
-                        className="ml-1.5 shrink-0 px-1.5 py-0 text-[10px]"
-                      >
-                        Past
-                      </Badge>
-                    ) : null}
                     <span className="ml-2 text-[11px] opacity-60">
                       {formatDateRange(sprint.startDate, sprint.endDate)}
                     </span>
@@ -253,6 +262,15 @@ export function SprintPlanning({
             {target?.status === SprintStatus.PLANNED ? (
               <Button size="sm" onClick={start} disabled={isPending}>
                 Start {target.name}
+              </Button>
+            ) : null}
+            {target?.status === SprintStatus.ACTIVE ? (
+              <Button
+                size="sm"
+                onClick={() => setConfirmComplete(true)}
+                disabled={isPending}
+              >
+                Complete {target.name}
               </Button>
             ) : null}
             <Button
@@ -409,6 +427,22 @@ export function SprintPlanning({
           if (!open) setOpenTaskId(null);
         }}
         onMutated={() => router.refresh()}
+      />
+
+      <ConfirmDialog
+        open={confirmComplete}
+        title="Complete this sprint?"
+        description={
+          target
+            ? `"${target.name}" will be marked complete and listed under Past sprints. Any issues still open will move back to the backlog.`
+            : ""
+        }
+        confirmLabel="Complete sprint"
+        pendingLabel="Completing…"
+        confirmVariant="default"
+        isPending={isPending}
+        onConfirm={complete}
+        onOpenChange={setConfirmComplete}
       />
     </>
   );

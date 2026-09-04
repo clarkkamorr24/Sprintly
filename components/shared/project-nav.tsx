@@ -14,8 +14,8 @@ interface ProjectNavItem {
 }
 
 const iconProps = {
-  width: 16,
-  height: 16,
+  width: 25,
+  height: 25,
   viewBox: "0 0 24 24",
   fill: "none",
   stroke: "currentColor",
